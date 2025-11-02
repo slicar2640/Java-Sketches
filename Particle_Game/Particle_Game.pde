@@ -1,19 +1,19 @@
 ParticleManager particleManager;
+ConstructBuilder constructBuilder;
 MouseInteractionManager mouseManager;
 MenuManager menuManager;
 final float SQRT3_2 = 0.86602540378;
 final float SQRT2 = 1.41421356237;
-boolean justExitedMenu = false;
-boolean paused = false;
 boolean shiftPressed = false, ctrlPressed = false, altPressed = false;
-ArrayList<String> millises = new ArrayList<>();
-int lastMillis = 0;
 
 void setup() {
   size(600, 600);
   particleManager = new ParticleManager(0, 10);
   mouseManager = new MouseInteractionManager(pushInteraction);
   menuManager = new MenuManager();
+  constructBuilder = new ConstructBuilder(particleManager);
+  //constructBuilder.addLoop(300, 300, 300, 185, new StickyParticle(0, 0, 1, 0, particleManager), constructBuilder.defaultStick);
+  //constructBuilder.addClassicRectangle(300, 300, 20, 20, 28, true, false, false, constructBuilder.defaultParticle, constructBuilder.defaultStick);
 }
 
 void draw() {
@@ -21,11 +21,12 @@ void draw() {
   if (menuManager.active) {
     menuManager.show();
   } else {
-    if (!paused) {
-      particleManager.update(1, 20);
+    if (!particleManager.paused) {
+      particleManager.update(1, 30);
+      particleManager.propagateSignals();
     }
     if (mousePressed) {
-      if (!justExitedMenu) {
+      if (!menuManager.justExitedMenu) {
         mouseManager.mouseDown();
       }
     }
@@ -53,14 +54,14 @@ void mouseWheel(MouseEvent e) {
 void mousePressed() {
   if (menuManager.active) {
     menuManager.click();
-  } else if (!justExitedMenu) {
+  } else if (!menuManager.justExitedMenu) {
     mouseManager.mouseClick();
   }
 }
 
 void mouseReleased() {
-  justExitedMenu = false;
-  if(!menuManager.active) {
+  menuManager.justExitedMenu = false;
+  if (!menuManager.active) {
     mouseManager.mouseUp();
   }
 }
@@ -78,7 +79,7 @@ void keyPressed() {
       mouseManager.currentInteraction = deleteInteraction;
       break;
     case '3':
-      menuManager.active = true;
+      menuManager.open("StartOfAdd");
       break;
     case '4':
       mouseManager.currentInteraction = addStickInteraction;
@@ -87,6 +88,8 @@ void keyPressed() {
     case '5':
       mouseManager.currentInteraction = new GrabInteraction(0.1);
       break;
+    case '6':
+      mouseManager.currentInteraction = new IgniteInteraction();
     case '-':
       mouseManager.updateCount(-1);
       break;
@@ -94,13 +97,19 @@ void keyPressed() {
       mouseManager.updateCount(1);
       break;
     case ' ':
-      paused = !paused;
+      particleManager.paused = !particleManager.paused;
       break;
     }
+  }
+  if(key == 's') {
+    frameRate(1);
   }
 }
 
 void keyReleased() {
+  if(key == 's') {
+    frameRate(60);
+  }
   if (keyCode == SHIFT) shiftPressed = false;
   if (keyCode == CONTROL) ctrlPressed = false;
   if (keyCode == ALT) altPressed = false;

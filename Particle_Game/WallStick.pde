@@ -7,8 +7,8 @@ class WallStick extends Stick {
     setIntersectingBuckets();
   }
   
-  public WallStick(Particle p1, Particle p2, float restLength, float stiffness) {
-    super(p1, p2, restLength, stiffness);
+  public WallStick(Particle p1, Particle p2, float restLength, float stiffness, float breakLength) {
+    super(p1, p2, restLength, stiffness, breakLength);
     isStatic = p1.isStatic && p2.isStatic;
     setIntersectingBuckets();
   }

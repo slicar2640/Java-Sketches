@@ -17,6 +17,11 @@ class StickyParticle extends Particle {
   
   @Override
   public void show() {
+    if(litUp) {
+      stroke(255, 0, 255);
+      strokeWeight(4);
+      point(pos.x, pos.y);
+    }
     stroke(255, 255, 180);
     strokeWeight(2);
     point(pos.x, pos.y);

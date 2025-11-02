@@ -20,6 +20,7 @@ class PushInteraction implements MouseInteraction {
   }
 
   public void mouseDown() {
+    if (particleManager.paused) return;
     PVector mousePos = new PVector(mouseX, mouseY);
     HashSet<Particle> parts = particleManager.getParticlesInRange(mouseX - radius, mouseY - radius, mouseX + radius, mouseY + radius);
     for (Particle p : parts) {
@@ -37,7 +38,7 @@ class PushInteraction implements MouseInteraction {
       }
     }
   }
-  
+
   public void mouseUp() {
   }
 
@@ -51,10 +52,10 @@ class PushInteraction implements MouseInteraction {
   }
 
   public void show() {
-    noFill();
     float strong = 10;
     stroke(map(strength, 0, -strong, 0, 255), map(strength, 0, strong, 0, 255), 0, 200);
     strokeWeight(max(2, (abs(strength) - strong) / 3));
+    noFill();
     circle(mouseX, mouseY, radius * 2);
   }
 }
@@ -78,7 +79,7 @@ class DeleteInteraction implements MouseInteraction {
       }
     }
   }
-  
+
   public void mouseUp() {
   }
 
@@ -119,7 +120,7 @@ class AddParticleInteraction implements MouseInteraction {
       addParticle();
     }
   }
-  
+
   public void mouseUp() {
   }
 
@@ -175,7 +176,7 @@ class AddConstructInteraction implements MouseInteraction {
 
   public void mouseDown() {
   }
-  
+
   public void mouseUp() {
   }
 
@@ -238,7 +239,7 @@ class AddStickInteraction implements MouseInteraction {
 
   public void mouseDown() {
   }
-  
+
   public void mouseUp() {
   }
 
@@ -257,16 +258,19 @@ class AddStickInteraction implements MouseInteraction {
       if (shiftPressed) {
         stroke((2 - stiffness) * 255, stiffness * 255, stiffness * 255);
         strokeWeight(2);
+        noFill();
         line(p1.pos.x, p1.pos.y, mouseX, mouseY);
       } else {
         PVector p2 = PVector.add(p1.pos, new PVector(mouseX, mouseY).sub(p1.pos).normalize().mult(length));
         stroke((2 - stiffness) * 255, stiffness * 255, stiffness * 255);
         strokeWeight(2);
+        noFill();
         line(p1.pos.x, p1.pos.y, p2.x, p2.y);
       }
 
       stroke(255, 80);
       strokeWeight(5 + sin(frameCount / 15));
+      noFill();
       ellipse(p1.pos.x, p1.pos.y, 20, 20);
     }
 
@@ -275,6 +279,7 @@ class AddStickInteraction implements MouseInteraction {
     if (closest != null) {
       stroke(255, 30);
       strokeWeight(6);
+      noFill();
       ellipse(closest.pos.x, closest.pos.y, 20, 20);
     }
   }
@@ -331,9 +336,9 @@ class GrabInteraction implements MouseInteraction {
       }
     }
   }
-  
+
   public void mouseUp() {
-    if(mouseButton == CENTER) {
+    if (mouseButton == CENTER) {
       grabbedParticles.clear();
     }
   }
@@ -349,6 +354,7 @@ class GrabInteraction implements MouseInteraction {
     for (Particle p : grabbedParticles) {
       stroke(255, 80);
       strokeWeight(5 + sin(frameCount / 15));
+      noFill();
       ellipse(p.pos.x, p.pos.y, 20, 20);
     }
 
@@ -356,12 +362,131 @@ class GrabInteraction implements MouseInteraction {
     if (closest != null) {
       stroke(255, 30);
       strokeWeight(6);
+      noFill();
       ellipse(closest.pos.x, closest.pos.y, 20, 20);
     }
 
     float strong = 0.1;
     stroke(map(strength, 0, -strong, 0, 255), map(strength, 0, strong, 0, 255), 0);
     strokeWeight(max(1.5, (abs(strength) - strong) * 4));
+    noFill();
     ellipse(mouseX, mouseY, 30, 30);
+  }
+}
+
+class IgniteInteraction implements MouseInteraction {
+  public void mouseClick() {
+    Particle closest = particleManager.closestParticleToPoint(mouseX, mouseY);
+    if (closest != null) {
+      closest.litUp = true;
+    }
+  }
+
+  public void mouseDown() {
+  }
+
+  public void mouseUp() {
+  }
+
+  public void updateScale(float delta) {
+  }
+
+  public void updateCount(int delta) {
+  }
+
+  public void show() {
+    Particle closest = particleManager.closestParticleToPoint(mouseX, mouseY);
+    if (closest != null) {
+      stroke(255, 30);
+      strokeWeight(6);
+      noFill();
+      ellipse(closest.pos.x, closest.pos.y, 20, 20);
+    }
+
+    stroke(255, 180, 0);
+    strokeWeight(2);
+    noFill();
+    ellipse(mouseX, mouseY, 30, 30);
+  }
+}
+
+class AddChainInteraction implements MouseInteraction {
+  float addDist;
+  float addDistSq;
+  Particle particleTemplate;
+  Stick stickTemplate;
+  Particle lastParticle;
+  int showAddDistTime = 0;
+  public AddChainInteraction(float addDist, Particle particleTemplate, Stick stickTemplate) {
+    this.addDist = addDist;
+    addDistSq = addDist * addDist;
+    this.particleTemplate = particleTemplate;
+    this.stickTemplate = stickTemplate;
+  }
+
+  public void mouseClick() {
+    try {
+      Particle closest = particleManager.closestParticleToPoint(mouseX, mouseY);
+      if (shiftPressed && closest != null) {
+        lastParticle = closest;
+      } else {
+        lastParticle = particleManager.copyParticle(mouseX, mouseY, particleTemplate);
+      }
+    }
+    catch (ReflectiveOperationException e) {
+      println(e.toString());
+    }
+  }
+
+  public void mouseDown() {
+    if (new PVector(mouseX, mouseY).sub(lastParticle.pos).magSq() > addDistSq) {
+      try {
+        Particle nextParticle = particleManager.copyParticle(mouseX, mouseY, particleTemplate);
+        particleManager.copyStick(lastParticle, nextParticle, stickTemplate);
+        lastParticle = nextParticle;
+      }
+      catch (ReflectiveOperationException e) {
+        println(e.toString());
+      }
+    }
+  }
+
+  public void mouseUp() {
+    lastParticle = null;
+  }
+
+  public void updateScale(float delta) {
+    addDist += delta;
+    if (addDist < 1) addDist = 1;
+    addDistSq = addDist * addDist;
+    showAddDistTime = 30;
+  }
+
+  public void updateCount(int delta) {
+  }
+
+  public void show() {
+    if (shiftPressed) {
+      Particle closest = particleManager.closestParticleToPoint(mouseX, mouseY);
+      if (closest != null) {
+        stroke(255, 30);
+        strokeWeight(6);
+        noFill();
+        ellipse(closest.pos.x, closest.pos.y, 20, 20);
+      }
+    }
+    if(showAddDistTime > 0) {
+      stroke(255);
+      strokeWeight(1);
+      noFill();
+      ellipse(mouseX, mouseY, addDist * 2, addDist * 2);
+      showAddDistTime--;
+    }
+    if (lastParticle != null) {
+      stroke(255);
+      strokeWeight(1);
+      noFill();
+      ellipse(lastParticle.pos.x, lastParticle.pos.y, addDist * 2, addDist * 2);
+    }
   }
 }

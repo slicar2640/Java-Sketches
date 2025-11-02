@@ -13,6 +13,7 @@ class ParticleManager {
   public int numParticles;
   private float repelStrength = 0.25;
   private float repelDist;
+  boolean paused = false;
 
   public ParticleManager(int num, float repelDist) {
     numParticles = num;
@@ -147,6 +148,18 @@ class ParticleManager {
     }
     return particles;
   }
+  
+  public void propagateSignals() {
+    for(Particle p : getAllParticles()) {
+      p.nextLitUp = false;
+    }
+    for(Stick s : sticks) {
+      s.propagateSignal();
+    }
+    for(Particle p : getAllParticles()) {
+      p.litUp = p.nextLitUp;
+    }
+  }
 
   public Particle randomParticle() {
     if (numParticles == 0) return null;
@@ -162,6 +175,13 @@ class ParticleManager {
   public Stick addStick(Stick s) {
     sticks.add(s);
     return s;
+  }
+  
+  public <T extends Stick> T addStick(Particle p1, Particle p2, Class<T> clazz) throws ReflectiveOperationException {
+    Constructor<T> constructor = clazz.getConstructor(Particle_Game.class, Particle.class, Particle.class);
+    T stick = constructor.newInstance(Particle_Game.this, p1, p2);
+    addStick(stick);
+    return stick;
   }
 
   public int numSticks() {
@@ -202,102 +222,18 @@ class ParticleManager {
       numParticles++;
     }
   }
-
-  public void addLoop(float cx, float cy, float radius, int count) {
-    Particle first = addParticle(cx + radius, cy);
-    Particle last = first;
-    for (int i = 1; i < count; i++) {
-      float x = cx + radius * cos((float)i / count * TWO_PI);
-      float y = cy + radius * sin((float)i / count * TWO_PI);
-      Particle p = addParticle(x, y);
-      addStick(new Stick(last, p, -1, 1));
-      last = p;
-    }
-    addStick(new Stick(last, first));
-  }
-
-  public void addTriangle(float x, float y, int sideCount, float spacing, float stiffness) {
-    float yOff = -spacing * (sideCount - 1) * SQRT3_2 * 2 / 3;
-    Particle[][] parts = new Particle[sideCount][];
-    parts[0] = new Particle[1];
-    parts[0][0] = addParticle(x, y + yOff);
-    for (int i = 1; i < sideCount; i++) {
-      parts[i] = new Particle[i + 1];
-      for (int j = 0; j <= i; j++) {
-        float x0 = x + ((float) -i / 2 + j) * spacing;
-        float y0 = y + yOff + i * SQRT3_2 * spacing;
-        parts[i][j] = addParticle(x0, y0);
-      }
-      for (int k = 0; k < i; k++) {
-        Particle top = parts[i - 1][k];
-        Particle left = parts[i][k];
-        Particle right = parts[i][k + 1];
-        addStick(new Stick(top, left, spacing, stiffness));
-        addStick(new Stick(top, right, spacing, stiffness));
-        addStick(new Stick(left, right, spacing, stiffness));
+  
+  public Particle closestParticleToPoint(float x, float y) {
+    HashSet<Particle> neighbors = particleManager.neighborParticles(x, y);
+    Particle closest = null;
+    float closestDist = particleManager.repelDist;
+    for (Particle p : neighbors) {
+      if (dist(p.pos.x, p.pos.y, x, y) < closestDist) {
+        closest = p;
+        closestDist = dist(p.pos.x, p.pos.y, x, y);
       }
     }
-  }
-
-  public void addRectangle(float ox, float oy, int widthCount, int heightCount, float spacing, float stiffness, float mass, boolean centered) {
-    float xOff = centered ? -(widthCount - 1) * spacing / 2 : 0;
-    float yOff = centered ? -(heightCount - 1) * spacing * SQRT3_2 / 2 : 0;
-    Particle[][] parts = new Particle[heightCount][];
-    for (int i = 0; i < heightCount; i++) {
-      parts[i] = new Particle[widthCount - ((i + 1) % 2)];
-      for (int j = 0; j < widthCount - ((i + 1) % 2); j++) {
-        float x = ox + xOff + (((i + 1) % 2) * 0.5 + j) * spacing;
-        float y = oy + yOff + i * SQRT3_2 * spacing;
-        parts[i][j] = addParticle(x, y, mass);
-        if (j > 0) {
-          addStick(new Stick(parts[i][j - 1], parts[i][j], spacing, stiffness));
-        }
-        if (i > 0) {
-          if (i % 2 == 0) {
-            addStick(new Stick(parts[i - 1][j], parts[i][j], spacing, stiffness));
-            addStick(new Stick(parts[i - 1][j + 1], parts[i][j], spacing, stiffness));
-          } else {
-            if (j > 0) {
-              addStick(new Stick(parts[i - 1][j - 1], parts[i][j], spacing, stiffness));
-            }
-            if (j < widthCount - 1) {
-              addStick(new Stick(parts[i - 1][j], parts[i][j], spacing, stiffness));
-            }
-          }
-        }
-      }
-    }
-  }
-
-  public void addClassicRectangle(float ox, float oy, int widthCount, int heightCount, float spacing, float stiffness, float mass, boolean centered) {
-    float xOff = centered ? -(widthCount - 1) * spacing / 2 : 0;
-    float yOff = centered ? -(heightCount - 1) * spacing / 2 : 0;
-    Particle[][] parts = new Particle[heightCount][widthCount];
-    for (int i = 0; i < heightCount; i++) {
-      for (int j = 0; j < widthCount; j++) {
-        float x = ox + xOff + j * spacing;
-        float y = oy + yOff + i * spacing;
-        parts[i][j] = addParticle(x, y, mass);
-        if (j > 0) {
-          addStick(new Stick(parts[i][j - 1], parts[i][j], spacing, stiffness));
-        }
-        if (i > 0) {
-          addStick(new Stick(parts[i - 1][j], parts[i][j], spacing, stiffness));
-          if (j > 0) {
-            addStick(new Stick(parts[i - 1][j - 1], parts[i][j], spacing * SQRT2, stiffness));
-          }
-        }
-      }
-    }
-  }
-
-  public void addWall(float x1, float y1, float x2, float y2) {
-    Particle p1 = addParticle(x1, y1);
-    p1.isStatic = true;
-    Particle p2 = addParticle(x2, y2);
-    p2.isStatic = true;
-    Stick stick = new WallStick(p1, p2);
-    sticks.add(stick);
+    return closest;
   }
 
   public void subdivideStick(Stick initial) {
@@ -350,6 +286,19 @@ class ParticleManager {
       }
     }
     sticks.removeAll(sticksToRemove);
+  }
+
+  public Particle copyParticle(float x, float y, Particle template) throws ReflectiveOperationException {
+    Particle p = addParticle(x, y, template.mass, template.getClass());
+    p.isStatic = template.isStatic;
+    return p;
+  }
+
+  public Stick copyStick(Particle p1, Particle p2, Stick template) throws ReflectiveOperationException {
+    Stick s = addStick(p1, p2, template.getClass());
+    s.stiffness = template.stiffness;
+    s.breakLengthRatio = template.breakLengthRatio;
+    return s;
   }
 
   int getBucketIndex(float x, float y) {

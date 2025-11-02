@@ -7,6 +7,7 @@ class Particle {
   public float friction = 1e-3;
   public ParticleManager manager;
   public boolean isStatic = false;
+  public boolean litUp = false, nextLitUp = false;
 
   public Particle(float x, float y, float mass, int bucketIndex, ParticleManager manager) {
     pos = new PVector(x, y);
@@ -64,8 +65,13 @@ class Particle {
       vel.y *= -1;
     }
   }
-
+  
   public void show() {
+    if(litUp) {
+      stroke(255, 0, 255);
+      strokeWeight(4);
+      point(pos.x, pos.y);
+    }
     stroke(255);
     strokeWeight(2);
     point(pos.x, pos.y);

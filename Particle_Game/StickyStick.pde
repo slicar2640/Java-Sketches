@@ -17,6 +17,11 @@ class StickyStick extends Stick {
   
   @Override
   public void show() {
+    if(litUp) {
+      stroke(255, 255, 0);
+      strokeWeight(3);
+      line(p1.pos.x, p1.pos.y, p2.pos.x, p2.pos.y);
+    }
     stroke(255, 255, 180);
     strokeWeight(1);
     line(p1.pos.x, p1.pos.y, p2.pos.x, p2.pos.y);
