@@ -34,6 +34,11 @@ class Particle {
       wallBounce();
       acc.set(0, 0);
   }
+  
+  public void updateSignal() {
+    litUp = nextLitUp;
+    nextLitUp = false;
+  }
 
   public void repelFrom(Particle other) {
     if (other == this || isStatic) return;
@@ -68,7 +73,7 @@ class Particle {
   
   public void show() {
     if(litUp) {
-      stroke(255, 0, 255);
+      stroke(255, 255, 0);
       strokeWeight(4);
       point(pos.x, pos.y);
     }

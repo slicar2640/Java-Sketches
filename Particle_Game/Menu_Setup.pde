@@ -26,6 +26,15 @@ public void initStartOfAdd(Menu startOfAdd) {
     point(0, 0);
   }
   ));
+  startOfAdd.addItem(new Button("p-plant", 50, 230, 190, 50, "PlantParticle", startOfAdd, (button) -> {
+    mouseManager.currentInteraction = new AddParticleInteraction(PlantParticle.class, 100, 1);
+  }
+  , () -> {
+    stroke(0, 185, 30);
+    strokeWeight(0.6);
+    point(0, 0);
+  }
+  ));
 
   startOfAdd.addItem(new LinkButton("custom", 300, 50, 120, 50, "Custom", "CustomConstruct", startOfAdd, (button) -> {
   }
@@ -151,8 +160,14 @@ public void initCustomConstruct(Menu customConstruct) {
     point(0, 0);
   }
   );
+  particleSelector.addButton("plantParticle", "PlantParticle", () -> {
+    stroke(0, 185, 30);
+    strokeWeight(0.6);
+    point(0, 0);
+  }
+  );
 
-  customConstruct.addItem(new NumericInput("mass", 250, 200, 100, 30, "Mass", 1, 1, Integer.MAX_VALUE, customConstruct));
+  customConstruct.addItem(new NumericInput("mass", 250, 210, 100, 30, "Mass", 1, 1, Integer.MAX_VALUE, customConstruct));
   customConstruct.addItem(new ToggleButton("static", 270, 280, 60, "Static", false, customConstruct));
 
   RadioSelector stickSelector = new RadioSelector("stick", 400, 50, 150, 30, "Stick Type", customConstruct);
@@ -200,20 +215,27 @@ public void initCustomConstruct(Menu customConstruct) {
       case "linkableParticle":
         particleTemplate = new LinkableParticle(0, 0, mass, 0, particleManager);
         break;
+      case "plantParticle":
+        particleTemplate = new PlantParticle(0, 0, mass, 0, particleManager);
+        break;
       }
       particleTemplate.isStatic = staticParticle;
       Stick stickTemplate;
-      switch(stickType) {
-      case "stick":
-      default:
-        stickTemplate = new Stick(constructBuilder.defaultParticle, constructBuilder.defaultParticle, 0, 1, -1);
-        break;
-      case "wallStick":
-        stickTemplate = new WallStick(constructBuilder.defaultParticle, constructBuilder.defaultParticle, 0, 1, -1);
-        break;
-      case "pistonStick":
-        stickTemplate = new PistonStick(constructBuilder.defaultParticle, constructBuilder.defaultParticle, 0, 1, 2, 0.1, -1);
-        break;
+      if (particleType.equals("plantParticle")) {
+        stickTemplate = new PlantStick((PlantParticle)particleTemplate, (PlantParticle)particleTemplate);
+      } else {
+        switch(stickType) {
+        case "stick":
+        default:
+          stickTemplate = new Stick(constructBuilder.defaultParticle, constructBuilder.defaultParticle, 0, 1, -1);
+          break;
+        case "wallStick":
+          stickTemplate = new WallStick(constructBuilder.defaultParticle, constructBuilder.defaultParticle, 0, 1, -1);
+          break;
+        case "pistonStick":
+          stickTemplate = new PistonStick(constructBuilder.defaultParticle, constructBuilder.defaultParticle, 0, 1, 2, 0.1, -1);
+          break;
+        }
       }
       switch(shape) {
       case "loop":
@@ -229,7 +251,11 @@ public void initCustomConstruct(Menu customConstruct) {
         mouseManager.currentInteraction = new AddConstructInteraction((scale, count) -> constructBuilder.addClassicRectangle(mouseX, mouseY, count, count, scale, true, true, false, particleTemplate, stickTemplate), 50, countFromInput, drawClassicRectangle);
         break;
       case "chain":
-        mouseManager.currentInteraction = new AddChainInteraction(particleManager.bucketSize, particleTemplate, stickTemplate);
+        if (particleType.equals("plantParticle")) {
+          mouseManager.currentInteraction = new PlantChainInteraction(particleManager.repelDist);
+        } else {
+          mouseManager.currentInteraction = new AddChainInteraction(particleManager.repelDist, particleTemplate, stickTemplate);
+        }
         break;
       }
       ((RadioSelector)button.menu.getItemById("shape")).reset();
@@ -237,6 +263,7 @@ public void initCustomConstruct(Menu customConstruct) {
       ((RadioSelector)button.menu.getItemById("stick")).reset();
       ((NumericInput)button.menu.getItemById("mass")).reset();
       ((NumericInput)button.menu.getItemById("count")).reset();
+      ((ToggleButton)button.menu.getItemById("static")).value = false;
     } else {
       ((Button)button).cancelClick();
     }

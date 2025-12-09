@@ -16,7 +16,7 @@ class LinkedParticle extends Particle {
   @Override
   public void show() {
     if(litUp) {
-      stroke(255, 0, 255);
+      stroke(255, 255, 0);
       strokeWeight(6);
       point(pos.x, pos.y);
     }

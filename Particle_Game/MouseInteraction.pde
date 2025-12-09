@@ -378,7 +378,7 @@ class IgniteInteraction implements MouseInteraction {
   public void mouseClick() {
     Particle closest = particleManager.closestParticleToPoint(mouseX, mouseY);
     if (closest != null) {
-      closest.litUp = true;
+      closest.nextLitUp = true;
     }
   }
 
@@ -441,9 +441,14 @@ class AddChainInteraction implements MouseInteraction {
   public void mouseDown() {
     if (new PVector(mouseX, mouseY).sub(lastParticle.pos).magSq() > addDistSq) {
       try {
-        Particle nextParticle = particleManager.copyParticle(mouseX, mouseY, particleTemplate);
-        particleManager.copyStick(lastParticle, nextParticle, stickTemplate);
-        lastParticle = nextParticle;
+        PVector step = new PVector(mouseX, mouseY).sub(lastParticle.pos).normalize().mult(addDist);
+        PVector pos = lastParticle.pos.copy();
+        while (new PVector(mouseX, mouseY).sub(pos).magSq() > addDistSq) {
+          pos.add(step);
+          Particle nextParticle = particleManager.copyParticle(pos.x, pos.y, particleTemplate);
+          particleManager.copyStick(lastParticle, nextParticle, stickTemplate);
+          lastParticle = nextParticle;
+        }
       }
       catch (ReflectiveOperationException e) {
         println(e.toString());
@@ -475,7 +480,83 @@ class AddChainInteraction implements MouseInteraction {
         ellipse(closest.pos.x, closest.pos.y, 20, 20);
       }
     }
-    if(showAddDistTime > 0) {
+    if (showAddDistTime > 0) {
+      stroke(255);
+      strokeWeight(1);
+      noFill();
+      ellipse(mouseX, mouseY, addDist * 2, addDist * 2);
+      showAddDistTime--;
+    }
+    if (lastParticle != null) {
+      stroke(255);
+      strokeWeight(1);
+      noFill();
+      ellipse(lastParticle.pos.x, lastParticle.pos.y, addDist * 2, addDist * 2);
+    }
+  }
+}
+
+class PlantChainInteraction implements MouseInteraction {
+  float addDist;
+  float addDistSq;
+  PlantParticle lastParticle;
+  int showAddDistTime = 0;
+  public PlantChainInteraction(float addDist) {
+    this.addDist = addDist;
+    addDistSq = addDist * addDist;
+  }
+
+  public void mouseClick() {
+    try {
+      PlantParticle closest = particleManager.closestParticleToPoint(mouseX, mouseY, PlantParticle.class);
+      if (shiftPressed && closest != null) {
+        lastParticle = closest;
+      } else {
+        lastParticle = particleManager.addParticle(mouseX, mouseY, 1, PlantParticle.class);
+      }
+    }
+    catch (ReflectiveOperationException e) {
+      println(e.toString());
+    }
+  }
+
+  public void mouseDown() {
+    if (new PVector(mouseX, mouseY).sub(lastParticle.pos).magSq() > addDistSq) {
+      PVector step = new PVector(mouseX, mouseY).sub(lastParticle.pos).normalize().mult(addDist);
+      PVector pos = lastParticle.pos.copy();
+      while (new PVector(mouseX, mouseY).sub(pos).magSq() > addDistSq) {
+        pos.add(step);
+        PlantParticle nextParticle = lastParticle.growTo(pos.x, pos.y);
+        lastParticle = nextParticle;
+      }
+    }
+  }
+
+  public void mouseUp() {
+    lastParticle = null;
+  }
+
+  public void updateScale(float delta) {
+    addDist += delta;
+    if (addDist < 1) addDist = 1;
+    addDistSq = addDist * addDist;
+    showAddDistTime = 30;
+  }
+
+  public void updateCount(int delta) {
+  }
+
+  public void show() {
+    if (shiftPressed) {
+      Particle closest = particleManager.closestParticleToPoint(mouseX, mouseY);
+      if (closest != null) {
+        stroke(255, 30);
+        strokeWeight(6);
+        noFill();
+        ellipse(closest.pos.x, closest.pos.y, 20, 20);
+      }
+    }
+    if (showAddDistTime > 0) {
       stroke(255);
       strokeWeight(1);
       noFill();

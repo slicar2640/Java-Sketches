@@ -37,7 +37,7 @@ class LinkableParticle extends Particle {
 
   public void show() {
     if(litUp) {
-      stroke(255, 0, 255);
+      stroke(255, 255, 0);
       strokeWeight(4);
       point(pos.x, pos.y);
     }

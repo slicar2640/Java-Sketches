@@ -1,0 +1,6 @@
+Stick
+p1: Particle
+p2: Particle
+Rest Length: 180.5
+Stiffness: 1.0
+Breakable? no

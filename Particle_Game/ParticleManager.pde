@@ -148,16 +148,13 @@ class ParticleManager {
     }
     return particles;
   }
-  
+
   public void propagateSignals() {
-    for(Particle p : getAllParticles()) {
-      p.nextLitUp = false;
-    }
-    for(Stick s : sticks) {
+    for (Stick s : sticks) {
       s.propagateSignal();
     }
-    for(Particle p : getAllParticles()) {
-      p.litUp = p.nextLitUp;
+    for (Particle p : getAllParticles()) {
+      p.updateSignal();
     }
   }
 
@@ -176,7 +173,7 @@ class ParticleManager {
     sticks.add(s);
     return s;
   }
-  
+
   public <T extends Stick> T addStick(Particle p1, Particle p2, Class<T> clazz) throws ReflectiveOperationException {
     Constructor<T> constructor = clazz.getConstructor(Particle_Game.class, Particle.class, Particle.class);
     T stick = constructor.newInstance(Particle_Game.this, p1, p2);
@@ -188,7 +185,7 @@ class ParticleManager {
     return sticks.size();
   }
 
-  public Particle addParticle(Particle p) {
+  public <T extends Particle> T addParticle(T p) {
     buckets.get(p.bucketIndex).add(p);
     numParticles++;
     return p;
@@ -222,7 +219,7 @@ class ParticleManager {
       numParticles++;
     }
   }
-  
+
   public Particle closestParticleToPoint(float x, float y) {
     HashSet<Particle> neighbors = particleManager.neighborParticles(x, y);
     Particle closest = null;
@@ -231,6 +228,21 @@ class ParticleManager {
       if (dist(p.pos.x, p.pos.y, x, y) < closestDist) {
         closest = p;
         closestDist = dist(p.pos.x, p.pos.y, x, y);
+      }
+    }
+    return closest;
+  }
+
+  public <T extends Particle> T closestParticleToPoint(float x, float y, Class<T> clazz) {
+    HashSet<Particle> neighbors = particleManager.neighborParticles(x, y);
+    T closest = null;
+    float closestDist = particleManager.repelDist;
+    for (Particle p : neighbors) {
+      if (clazz.isInstance(p)) {
+        if (dist(p.pos.x, p.pos.y, x, y) < closestDist) {
+          closest = clazz.cast(p);
+          closestDist = dist(p.pos.x, p.pos.y, x, y);
+        }
       }
     }
     return closest;
@@ -316,34 +328,5 @@ class ParticleManager {
         particle.show();
       }
     }
-    //GRIDLINES
-    //stroke(100);
-    //strokeWeight(1);
-    //for(float i = 0; i < width; i += bucketSize) {
-    //  line(i, 0, i, height);
-    //}
-    //for(float i = 0; i < height; i += bucketSize) {
-    //  line(0, i, width, i);
-    //}
-
-    //int mouseCol = constrain(floor(mouseX / bucketSize), 0, cols - 1);
-    //int mouseRow = constrain(floor(mouseY / bucketSize), 0, rows - 1);
-    //int index = mouseCol + mouseRow * rows;
-    //stroke(255, 0, 255);
-    //strokeWeight(4);
-    //for(Particle p : buckets.get(index)) {
-    //  point(p.pos.x, p.pos.y);
-    //}
-
-    //stroke(0, 255, 0);
-    //strokeWeight(4);
-    //ArrayList<Particle> neighbors = neighborParticles(mouseX, mouseY);
-    //for(Particle p : neighbors) {
-    //  point(p.pos.x, p.pos.y);
-    //}
-    //strokeWeight(1);
-    //noFill();
-    //rect(mouseCol * bucketSize, mouseRow * bucketSize, bucketSize, bucketSize);
-    //ellipse(mouseX, mouseY, bucketSize, bucketSize);
   }
 }
