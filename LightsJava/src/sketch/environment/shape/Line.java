@@ -1,0 +1,77 @@
+package sketch.environment.shape;
+
+import java.awt.GradientPaint;
+
+import sketch.environment.Intersection;
+import sketch.environment.Ray;
+import sketch.environment.colortype.*;
+import sketch.environment.material.Material;
+import sketch.environment.snapshot.shape.IntersectionShapeSnapshot;
+import sketch.environment.snapshot.shape.LineSnapshot;
+import sketch.util.DrawUtils;
+import sketch.util.MathUtils;
+import sketch.util.Vector;
+
+public class Line implements IntersectionShape {
+  Vector p1, p2;
+  Vector normal;
+
+  public Line(Vector p1, Vector p2) {
+    this.p1 = p1;
+    this.p2 = p2;
+    this.normal = Vector.sub(p2, p1).transpose().mult(-1, 1).normalize(); // (-y, x)
+  }
+
+  public Intersection intersect(Ray ray) {
+    Vector v1 = ray.origin;
+    Vector v2 = Vector.add(ray.origin, ray.direction);
+    Vector v3 = p1;
+    Vector v4 = p2;
+    float denom = (v4.y - v3.y) * (v2.x - v1.x) - (v4.x - v3.x) * (v2.y - v1.y);
+    if (denom == 0) {
+      return null;
+    }
+    float ua = ((v4.x - v3.x) * (v1.y - v3.y) - (v4.y - v3.y) * (v1.x - v3.x)) / denom;
+    float ub = ((v2.x - v1.x) * (v1.y - v3.y) - (v2.y - v1.y) * (v1.x - v3.x)) / denom;
+    if (ua < 0 || ub < 0 || ub > 1) {
+      return null;
+    }
+    return Intersection.stepOne(ray, Vector.lerp(p1, p2, ub), normal, ub);
+  }
+
+  public void show(Material mat, DrawUtils drawUtils) {
+    ColorType colorType = mat.colorType;
+    drawUtils.strokeWeight(4);
+    if (colorType instanceof SolidColor c) {
+      drawUtils.stroke(c.color);
+      drawUtils.line(p1.x, p1.y, p2.x, p2.y);
+    } else if (colorType instanceof GradientColor c) {
+      drawUtils.stroke(new GradientPaint(p1.toPoint(), c.color1, p2.toPoint(), c.color2));
+      drawUtils.line(p1.x, p1.y, p2.x, p2.y);
+    } else if (colorType instanceof SplitColor c) {
+      for (int i = 0; i < c.colors.length; i++) {
+        float before = i == 0 ? 0 : c.thresholds[i - 1];
+        float after = i == c.thresholds.length ? 1 : c.thresholds[i];
+        drawUtils.stroke(c.colors[i]);
+        Vector m1 = Vector.lerp(p1, p2, before);
+        Vector m2 = Vector.lerp(p1, p2, after);
+        drawUtils.line(m1.x, m1.y, m2.x, m2.y);
+      }
+    }
+  }
+
+  public void showMaterial(Material mat, DrawUtils drawUtils) {
+    drawUtils.stroke(mat.matColor);
+    drawUtils.strokeWeight(8);
+    drawUtils.line(p1.x, p1.y, p2.x, p2.y);
+  }
+
+  public static Line random(float width, float height) {
+    return new Line(new Vector(MathUtils.random(width), MathUtils.random(height)),
+        new Vector(MathUtils.random(width), MathUtils.random(height)));
+  }
+
+  public IntersectionShapeSnapshot getShapshot() {
+    return new LineSnapshot(p1.copy(), p2.copy());
+  }
+}

@@ -8,8 +8,11 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 
+import sketch.util.Vector;
+
 public class InputManager implements KeyListener, MouseListener, MouseMotionListener, MouseWheelListener {
   public Sketch sketch;
+  public Vector mouse = new Vector(0, 0);
 
   public InputManager(Sketch sketch) {
     this.sketch = sketch;
@@ -22,12 +25,12 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 
   @Override
   public void mouseDragged(MouseEvent e) {
-
+    mouse.set(e.getX(), e.getY());
   }
 
   @Override
   public void mouseMoved(MouseEvent e) {
-
+    mouse.set(e.getX(), e.getY());
   }
 
   @Override
@@ -56,6 +59,9 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 
   @Override
   public void keyPressed(KeyEvent e) {
+    if (e.getKeyChar() == ' ') {
+      sketch.showMaterials = !sketch.showMaterials;
+    }
   }
 
   @Override
