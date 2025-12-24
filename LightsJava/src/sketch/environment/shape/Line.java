@@ -1,25 +1,29 @@
 package sketch.environment.shape;
 
 import java.awt.GradientPaint;
+import java.util.ArrayList;
 
+import sketch.edit.EditPoint;
+import sketch.edit.EditTool;
 import sketch.environment.Intersection;
 import sketch.environment.Ray;
 import sketch.environment.colortype.*;
 import sketch.environment.material.Material;
-import sketch.environment.snapshot.shape.IntersectionShapeSnapshot;
-import sketch.environment.snapshot.shape.LineSnapshot;
 import sketch.util.DrawUtils;
 import sketch.util.MathUtils;
 import sketch.util.Vector;
 
-public class Line implements IntersectionShape {
-  Vector p1, p2;
-  Vector normal;
+public class Line extends IntersectionShape {
+  private Vector p1, p2;
+  private Vector normal;
+  private EditPoint p1Tool, p2Tool;
 
   public Line(Vector p1, Vector p2) {
     this.p1 = p1;
     this.p2 = p2;
-    this.normal = Vector.sub(p2, p1).transpose().mult(-1, 1).normalize(); // (-y, x)
+    p1Tool = new EditPoint(p1.x, p1.y, this::setP1);
+    p2Tool = new EditPoint(p2.x, p2.y, this::setP2);
+    this.normal = Vector.sub(p2, p1).rot90().normalize();
   }
 
   public Intersection intersect(Ray ray) {
@@ -37,6 +41,38 @@ public class Line implements IntersectionShape {
       return null;
     }
     return Intersection.stepOne(ray, Vector.lerp(p1, p2, ub), normal, ub);
+  }
+
+  public float distToPoint(float mx, float my) {
+    Vector m = new Vector(mx, my);
+    float l2 = Vector.distSq(p1, p2);
+    if (l2 == 0.0)
+      return Vector.dist(p1, m);
+    float t = Math.max(0, Math.min(1, Vector.dot(Vector.sub(m, p1), Vector.sub(p2, p1)) / l2));
+    Vector projection = Vector.add(p1, Vector.sub(p2, p1).mult(t));
+    return Vector.dist(m, projection);
+  }
+
+  public void setP1(float x, float y) {
+    p1.set(x, y);
+    this.normal = Vector.sub(p2, p1).rot90().normalize();
+  }
+
+  public void setP2(float x, float y) {
+    p2.set(x, y);
+    this.normal = Vector.sub(p2, p1).rot90().normalize();
+  }
+
+  public ArrayList<EditTool> getEditTools() {
+    ArrayList<EditTool> tools = new ArrayList<>();
+    tools.add(p1Tool);
+    tools.add(p2Tool);
+    return tools;
+  }
+
+  public void showEditTools(DrawUtils drawUtils) {
+    p1Tool.show(drawUtils);
+    p2Tool.show(drawUtils);
   }
 
   public void show(Material mat, DrawUtils drawUtils) {
@@ -69,9 +105,5 @@ public class Line implements IntersectionShape {
   public static Line random(float width, float height) {
     return new Line(new Vector(MathUtils.random(width), MathUtils.random(height)),
         new Vector(MathUtils.random(width), MathUtils.random(height)));
-  }
-
-  public IntersectionShapeSnapshot getShapshot() {
-    return new LineSnapshot(p1.copy(), p2.copy());
   }
 }

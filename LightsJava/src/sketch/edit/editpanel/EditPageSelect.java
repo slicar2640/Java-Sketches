@@ -1,0 +1,116 @@
+package sketch.edit.editpanel;
+
+import java.awt.Color;
+import java.awt.Paint;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Rectangle2D;
+import java.util.function.Consumer;
+
+import sketch.util.DrawUtils;
+import sketch.util.DrawUtils.TextAlign;
+import sketch.util.DrawUtils.WeightedStroke;
+
+public class EditPageSelect extends EditInput {
+  private Paint buttonBackgroundPaint = Color.LIGHT_GRAY;
+  private WeightedStroke buttonSymbolStroke = new WeightedStroke(Color.GRAY, 2);
+  private WeightedStroke stroke = new WeightedStroke(Color.BLACK, 2);
+  private Paint numberBackgroundPaint = Color.BLACK;
+  private Paint numberPaint = Color.WHITE;
+  private float numberSize;
+
+  private int min, max;
+
+  private int value;
+
+  private float x, y;
+  private float buttonWidth, numberBoxWidth, height;
+
+  private Consumer<Integer> controlling;
+
+  public EditPageSelect(int min, int max, int value, EditPanel editPanel) {
+    this.min = min;
+    this.max = max;
+    this.value = value;
+    this.editPanel = editPanel;
+  }
+
+  public EditPageSelect setPosition(float x, float y) {
+    this.x = x;
+    this.y = y;
+    return this;
+  }
+
+  public EditPageSelect setButtonSize(float w, float h) {
+    buttonWidth = w;
+    height = h;
+    numberSize = (h - 4) * 72 / 96;
+    return this;
+  }
+
+  public EditPageSelect setControlling(Consumer<Integer> controlling) {
+    this.controlling = controlling;
+    return this;
+  }
+
+  private void calculateNumberBoxWidth(DrawUtils drawUtils) {
+    this.numberBoxWidth = drawUtils.stringWidth(" " + Integer.toString(value) + " ", numberSize);
+  }
+
+  public Rectangle2D.Float getBounds() {
+    return new Rectangle2D.Float(x, y, numberBoxWidth + buttonWidth * 2, height);
+  }
+
+  private Rectangle2D.Float getLeftButtonBounds() {
+    return new Rectangle2D.Float(x, y, buttonWidth, height);
+  }
+
+  private Rectangle2D.Float getRightButtonBounds() {
+    return new Rectangle2D.Float(x + buttonWidth + numberBoxWidth, y, buttonWidth, height);
+  }
+
+  public void mousePressed(MouseEvent e) {
+    if (getLeftButtonBounds().contains(e.getPoint()) && value > min) {
+      value--;
+      controlValue();
+      editPanel.updateVisuals();
+    } else if (getRightButtonBounds().contains(e.getPoint()) && value < max) {
+      value++;
+      controlValue();
+      editPanel.updateVisuals();
+    }
+  }
+
+  public void controlValue() {
+    if (controlling != null) {
+      controlling.accept(value);
+    }
+  }
+
+  public void show(DrawUtils drawUtils) {
+    calculateNumberBoxWidth(drawUtils);
+    drawUtils.fill(buttonBackgroundPaint);
+    drawUtils.noStroke();
+    drawUtils.rect(x, y, buttonWidth, height);
+    drawUtils.rect(x + buttonWidth + numberBoxWidth, y, buttonWidth, height);
+    drawUtils.stroke(buttonSymbolStroke);
+    drawUtils.line(x + buttonWidth * 2 / 3, y + height / 3, x + buttonWidth / 3, y + height / 2);
+    drawUtils.line(x + buttonWidth * 2 / 3, y + height * 2 / 3, x + buttonWidth / 3, y + height / 2);
+    drawUtils.line(x + buttonWidth + numberBoxWidth + buttonWidth / 3, y + height / 3,
+        x + buttonWidth + numberBoxWidth + buttonWidth * 2 / 3, y + height / 2);
+    drawUtils.line(x + buttonWidth + numberBoxWidth + buttonWidth / 3, y + height * 2 / 3,
+        x + buttonWidth + numberBoxWidth + buttonWidth * 2 / 3, y + height / 2);
+
+    drawUtils.fill(numberBackgroundPaint);
+    drawUtils.noStroke();
+    drawUtils.rect(x + buttonWidth, y, numberBoxWidth, height);
+    drawUtils.fill(numberPaint);
+    drawUtils.text(Integer.toString(value), x + buttonWidth + numberBoxWidth / 2, y + height / 2, numberSize,
+        TextAlign.CENTER_CENTER);
+
+    drawUtils.stroke(stroke);
+    drawUtils.line(x + buttonWidth, y, x + buttonWidth, y + height);
+    drawUtils.line(x + buttonWidth + numberBoxWidth, y, x + buttonWidth + numberBoxWidth, y + height);
+    drawUtils.noFill();
+    drawUtils.rect(x, y, numberBoxWidth + buttonWidth * 2, height);
+  }
+}

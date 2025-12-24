@@ -1,22 +1,34 @@
 package sketch.environment;
 
-import java.awt.Color;
+import java.util.ArrayList;
 
+import sketch.edit.EditTool;
+import sketch.edit.editpanel.EditPanel;
 import sketch.environment.material.Material;
 import sketch.environment.shape.IntersectionShape;
-import sketch.environment.snapshot.EnvironmentObjectSnapshot;
 import sketch.util.DrawUtils;
 
 public class EnvironmentObject {
-  private IntersectionShape shape;
-  private Material material;
+  public Environment environment;
+  public IntersectionShape shape;
+  public Material material;
 
   public EnvironmentObject(IntersectionShape shape, Material material) {
     this.shape = shape;
     this.material = material;
   }
 
-  public Color getColor(Intersection intersection) {
+  public void setEnvironment(Environment environment) {
+    this.environment = environment;
+    shape.environment = environment;
+    material.environment = environment;
+  }
+
+  public void setupEditPanel(EditPanel editPanel) {
+    material.setupEditPanel(editPanel);
+  }
+
+  public HitColor getColor(Intersection intersection) {
     return material.getColor(intersection);
   }
 
@@ -37,7 +49,11 @@ public class EnvironmentObject {
     shape.showMaterial(material, drawUtils);
   }
 
-  public EnvironmentObjectSnapshot getSnapshot() {
-    return new EnvironmentObjectSnapshot(shape.getShapshot(), material.getSnapshot());
+  public void showEditTools(DrawUtils drawUtils) {
+    shape.showEditTools(drawUtils);
+  }
+
+  public ArrayList<EditTool> getTools() {
+    return shape.getEditTools();
   }
 }

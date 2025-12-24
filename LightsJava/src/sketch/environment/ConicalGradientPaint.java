@@ -38,9 +38,8 @@ public class ConicalGradientPaint implements Paint {
   }
 
   @Override
-  public PaintContext createContext(final ColorModel COLOR_MODEL,
-      final Rectangle DEVICE_BOUNDS, final Rectangle2D USER_BOUNDS,
-      final AffineTransform TRANSFORM, final RenderingHints HINTS) {
+  public PaintContext createContext(final ColorModel COLOR_MODEL, final Rectangle DEVICE_BOUNDS,
+      final Rectangle2D USER_BOUNDS, final AffineTransform TRANSFORM, final RenderingHints HINTS) {
     final Point2D TRANSFORMED_CENTER = TRANSFORM.transform(CENTER, null);
     return new ConicalGradientPaintContext(TRANSFORMED_CENTER);
   }
@@ -73,8 +72,7 @@ public class ConicalGradientPaint implements Paint {
       final double ROTATION_CENTER_Y = -Y + CENTER.getY();
 
       // Create raster for given colormodel
-      final WritableRaster RASTER = getColorModel().createCompatibleWritableRaster(TILE_WIDTH,
-          TILE_HEIGHT);
+      final WritableRaster RASTER = getColorModel().createCompatibleWritableRaster(TILE_WIDTH, TILE_HEIGHT);
 
       // Create data array with place for red, green, blue and alpha values
       int[] data = new int[(TILE_WIDTH * TILE_HEIGHT * 4)];
@@ -85,7 +83,7 @@ public class ConicalGradientPaint implements Paint {
       double lerpFactor;
       float[] startColor = COLOR1.getComponents(null);
       float[] endColor = COLOR2.getComponents(null);
-      float[] lerpColor = new float[] { 0, 0, 0, 0 };
+      float[] lerpColor = new float[] {0, 0, 0, 0};
 
       for (int py = 0; py < TILE_HEIGHT; py++) {
         for (int px = 0; px < TILE_WIDTH; px++) {

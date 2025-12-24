@@ -1,15 +1,23 @@
 package sketch.util;
 
 import java.awt.BasicStroke;
+import java.awt.Canvas;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Paint;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Stroke;
-
-import sketch.WindowManager;
+import java.awt.Toolkit;
+import java.awt.geom.Arc2D;
+import java.awt.geom.CubicCurve2D;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
+import java.util.HashMap;
 
 public class DrawUtils {
   public static enum TextAlign {
@@ -25,14 +33,16 @@ public class DrawUtils {
   }
 
   private final Font baseFont = new Font("Arial", Font.PLAIN, 16);
-  private WindowManager windowManager;
+  private Canvas canvas;
   private Graphics2D graphics;
 
   private Paint strokePaint;
   private Paint fillPaint;
 
-  public DrawUtils(WindowManager windowManager) {
-    this.windowManager = windowManager;
+  private HashMap<String, Cursor> cursorMap = new HashMap<>();
+
+  public DrawUtils(Canvas canvas) {
+    this.canvas = canvas;
   }
 
   public void setGraphics(Graphics2D graphics) {
@@ -43,13 +53,30 @@ public class DrawUtils {
     return graphics;
   }
 
+  public void setCursorIcon(String name, Image icon) {
+    cursorMap.put(name, Toolkit.getDefaultToolkit().createCustomCursor(icon, new Point(16, 16), name));
+  }
+
+  public void setCursor(int cursorType) {
+    canvas.setCursor(Cursor.getPredefinedCursor(cursorType));
+  }
+
+  public void setCursor(String cursorName) {
+    canvas.setCursor(cursorMap.get(cursorName));
+  }
+
   public void background(Paint p) {
     graphics.setPaint(p);
-    graphics.fillRect(0, 0, windowManager.width, windowManager.height);
+    graphics.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
   }
 
   public void stroke(Paint p) {
     strokePaint = p;
+  }
+
+  public void stroke(WeightedStroke s) {
+    stroke(s.color());
+    strokeWeight(s.weight());
   }
 
   public void noStroke() {
@@ -83,41 +110,39 @@ public class DrawUtils {
     if (strokePaint == null)
       return;
     graphics.setPaint(strokePaint);
-    graphics.drawLine((int) x1, (int) y1, (int) x2, (int) y2);
+    graphics.draw(new Line2D.Float(x1, y1, x2, y2));
   }
 
   public void rect(float x, float y, float w, float h) {
     if (fillPaint != null) {
       graphics.setPaint(fillPaint);
-      graphics.fillRect((int) x, (int) y, (int) w, (int) h);
+      graphics.fill(new Rectangle2D.Float(x, y, w, h));
     }
     if (strokePaint != null) {
       graphics.setPaint(strokePaint);
-      graphics.drawRect((int) x, (int) y, (int) w, (int) h);
+      graphics.draw(new Rectangle2D.Float(x, y, w, h));
     }
   }
 
   public void circle(float x, float y, float r) {
     if (fillPaint != null) {
       graphics.setPaint(fillPaint);
-      graphics.fillArc((int) (x - r), (int) (y - r), (int) (r * 2), (int) (r * 2), 0, 360);
+      graphics.fill(new Ellipse2D.Float(x - r, y - r, r * 2, r * 2));
     }
     if (strokePaint != null) {
       graphics.setPaint(strokePaint);
-      graphics.drawArc((int) (x - r), (int) (y - r), (int) (r * 2), (int) (r * 2), 0, 360);
+      graphics.draw(new Ellipse2D.Float(x - r, y - r, r * 2, r * 2));
     }
   }
 
   public void arc(float x, float y, float r, float startAngle, float endAngle) {
     if (fillPaint != null) {
       graphics.setPaint(fillPaint);
-      graphics.fillArc((int) (x - r), (int) (y - r), (int) (r * 2), (int) (r * 2), 360 - (int) startAngle,
-          (int) -(endAngle - startAngle));
+      graphics.fill(new Arc2D.Float(x - r, y - r, r * 2, r * 2, -startAngle, startAngle - endAngle, Arc2D.OPEN));
     }
     if (strokePaint != null) {
       graphics.setPaint(strokePaint);
-      graphics.drawArc((int) (x - r), (int) (y - r), (int) (r * 2), (int) (r * 2), 360 - (int) startAngle,
-          (int) -(endAngle - startAngle));
+      graphics.draw(new Arc2D.Float(x - r, y - r, r * 2, r * 2, -startAngle, startAngle - endAngle, Arc2D.OPEN));
     }
   }
 
@@ -136,6 +161,17 @@ public class DrawUtils {
     if (strokePaint != null) {
       graphics.setPaint(strokePaint);
       graphics.draw(polygon);
+    }
+  }
+
+  public void bezier(float x1, float y1, float cx1, float cy1, float cx2, float cy2, float x2, float y2) {
+    if (fillPaint != null) {
+      graphics.setPaint(fillPaint);
+      graphics.fill(new CubicCurve2D.Float(x1, y1, cx1, cy1, cx2, cy2, x2, y2));
+    }
+    if (strokePaint != null) {
+      graphics.setPaint(strokePaint);
+      graphics.draw(new CubicCurve2D.Float(x1, y1, cx1, cy1, cx2, cy2, x2, y2));
     }
   }
 
@@ -171,5 +207,13 @@ public class DrawUtils {
   public static Color lerpColor(Color color1, Color color2, float t) {
     float[] components = MathUtils.lerp(color1.getColorComponents(null), color2.getColorComponents(null), t);
     return rgbFromArray(components);
+  }
+
+  public void strokeDash(float weight, float dashLength, float dashGap, float dashOffset) {
+    graphics.setStroke(new BasicStroke(weight, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 10,
+        new float[] {dashLength, dashGap}, dashOffset));
+  }
+
+  public record WeightedStroke(Paint color, float weight) {
   }
 }

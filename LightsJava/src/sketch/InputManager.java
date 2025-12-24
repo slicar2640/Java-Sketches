@@ -26,6 +26,9 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
   @Override
   public void mouseDragged(MouseEvent e) {
     mouse.set(e.getX(), e.getY());
+    if (sketch.getState() == Sketch.State.EDIT) {
+      sketch.editManager.drag(e.getX(), e.getY());
+    }
   }
 
   @Override
@@ -39,10 +42,20 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
 
   @Override
   public void mousePressed(MouseEvent e) {
+    if (sketch.getState() == Sketch.State.EDIT) {
+      if (e.isShiftDown()) {
+        sketch.editManager.selectObjectAt(e.getX(), e.getY());
+      } else {
+        sketch.editManager.selectToolAt(e.getX(), e.getY());
+      }
+    }
   }
 
   @Override
   public void mouseReleased(MouseEvent e) {
+    if (sketch.getState() == Sketch.State.EDIT) {
+      sketch.editManager.deselectTool();
+    }
   }
 
   @Override
@@ -60,7 +73,11 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
   @Override
   public void keyPressed(KeyEvent e) {
     if (e.getKeyChar() == ' ') {
-      sketch.showMaterials = !sketch.showMaterials;
+      sketch.stateChange(Sketch.State.DEBUG);
+    } else if (e.getKeyChar() == 'E') {
+      sketch.stateChange(Sketch.State.EDIT);
+    } else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+      sketch.editManager.tryToOpenEditPanel();
     }
   }
 

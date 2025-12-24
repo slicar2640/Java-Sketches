@@ -82,10 +82,10 @@ public class Vector {
     return this;
   }
 
-  public Vector transpose() {
-    float t = x;
-    x = y;
-    y = t;
+  public Vector rot90() {
+    float X = x;
+    x = -y;
+    y = X;
     return this;
   }
 
@@ -95,6 +95,14 @@ public class Vector {
 
   public float dist(float x, float y) {
     return (float) Math.sqrt((this.x - x) * (this.x - x) + (this.y - y) * (this.y - y));
+  }
+
+  public float distSq(Vector other) {
+    return (x - other.x) * (x - other.x) + (y - other.y) * (y - other.y);
+  }
+
+  public float distSq(float x, float y) {
+    return (this.x - x) * (this.x - x) + (this.y - y) * (this.y - y);
   }
 
   public float mag() {
@@ -164,6 +172,10 @@ public class Vector {
     return (float) Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
   }
 
+  public static float distSq(Vector a, Vector b) {
+    return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
+  }
+
   public static Vector lerp(Vector a, Vector b, float t) {
     return new Vector(MathUtils.lerp(a.x, b.x, t), MathUtils.lerp(a.y, b.y, t));
   }
@@ -173,9 +185,10 @@ public class Vector {
     return new Vector((float) (Math.cos(angle)), (float) Math.sin(angle));
   }
 
-  public static void random2D(Vector p) {
+  public static Vector random2D(Vector p) {
     double angle = Math.random() * 2 * Math.PI;
     p.set((float) (Math.cos(angle)), (float) Math.sin(angle));
+    return p;
   }
 
   public static float dot(Vector a, Vector b) {
@@ -188,5 +201,12 @@ public class Vector {
 
   public static Vector fromAngle(float angle, float length) {
     return new Vector(length * (float) Math.cos(angle), length * (float) Math.sin(angle));
+  }
+
+  public static Vector reflect(Vector vec, Vector normal) {
+    Vector normalCopy = normal.copy();
+    if (normalCopy.magSq() != 1)
+      normalCopy.normalize();
+    return vec.copy().sub(normalCopy.mult(2 * vec.dot(normalCopy)));
   }
 }

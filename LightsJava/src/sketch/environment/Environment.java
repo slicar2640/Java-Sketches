@@ -11,39 +11,47 @@ import sketch.environment.material.GlassMaterial;
 import sketch.environment.material.LightMaterial;
 import sketch.environment.material.Material;
 import sketch.environment.shape.Arc;
+import sketch.environment.shape.Bezier;
 import sketch.environment.shape.IntersectionShape;
 import sketch.environment.shape.Line;
-import sketch.environment.snapshot.EnvironmentObjectSnapshot;
-import sketch.environment.snapshot.EnvironmentSnapshot;
 import sketch.util.DrawUtils;
 import sketch.util.Vector;
 
 public class Environment {
   private ArrayList<EnvironmentObject> objects = new ArrayList<>();
   public Sketch sketch;
+  public int maxDepth;
 
-  public Environment(Sketch sketch) {
+  public Environment(Sketch sketch, int maxDepth) {
     this.sketch = sketch;
+    this.maxDepth = maxDepth;
   }
 
   public void addObject(EnvironmentObject object) {
     objects.add(object);
+    object.setEnvironment(this);
   }
 
   public void addRandomObject() {
     IntersectionShape shape = randomShape();
     Material material = randomMaterial();
-    objects.add(new EnvironmentObject(shape, material));
+    addObject(new EnvironmentObject(shape, material));
+  }
+
+  public ArrayList<EnvironmentObject> getObjects() {
+    return objects;
   }
 
   public IntersectionShape randomShape() {
-    int option = (int) (Math.random() * 2);
+    int option = (int) (Math.random() * 3);
     switch (option) {
     case 0:
       return Line.random(sketch.windowManager.width, sketch.windowManager.height);
     case 1:
-    default:
       return Arc.random(sketch.windowManager.width, sketch.windowManager.height);
+    case 2:
+    default:
+      return Bezier.random(sketch.windowManager.width, sketch.windowManager.height);
     }
   }
 
@@ -55,7 +63,7 @@ public class Environment {
       return new LightMaterial(colorType);
     case 1:
     default:
-      return new GlassMaterial(colorType, this);
+      return new GlassMaterial(colorType);
     }
   }
 
@@ -72,6 +80,14 @@ public class Environment {
     }
   }
 
+  public float closestDist(float px, float py) {
+    float minDist = Float.MAX_VALUE;
+    for (EnvironmentObject obj : objects) {
+      minDist = Math.min(minDist, obj.shape.distToPoint(px, py));
+    }
+    return minDist;
+  }
+
   public Intersection intersect(Ray ray) {
     float minDist = Float.MAX_VALUE;
     Intersection intersection = null;
@@ -79,7 +95,7 @@ public class Environment {
       Intersection objIntersection = obj.intersect(ray);
       if (objIntersection == null)
         continue;
-      float d = Vector.dist(ray.origin, objIntersection.position);
+      float d = Vector.distSq(ray.origin, objIntersection.position); // squared distance
       if (d < minDist) {
         minDist = d;
         intersection = objIntersection;
@@ -98,13 +114,5 @@ public class Environment {
     for (EnvironmentObject o : objects) {
       o.showMaterial(drawUtils);
     }
-  }
-
-  public EnvironmentSnapshot getSnapshot() {
-    EnvironmentObjectSnapshot[] objectSnapshots = new EnvironmentObjectSnapshot[objects.size()];
-    for (int i = 0; i < objects.size(); i++) {
-      objectSnapshots[i] = objects.get(i).getSnapshot();
-    }
-    return new EnvironmentSnapshot(objectSnapshots);
   }
 }

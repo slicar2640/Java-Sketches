@@ -2,34 +2,31 @@ package sketch.environment.material;
 
 import java.awt.Color;
 
-import sketch.environment.Environment;
+import sketch.environment.HitColor;
 import sketch.environment.Intersection;
 import sketch.environment.Ray;
 import sketch.environment.colortype.ColorType;
-import sketch.environment.snapshot.material.MaterialSnapshot;
+import sketch.util.Vector;
 
 public class GlassMaterial extends Material {
-  private Environment environment;
-
-  public GlassMaterial(ColorType colorType, Environment environment) {
+  public GlassMaterial(ColorType colorType) {
     this.colorType = colorType;
-    this.environment = environment;
     matColor = new Color(180, 0, 30);
   }
 
-  public Color getColor(Intersection intersection) {
-    Color throughColor = Color.BLACK;
-    Intersection throughIntersect = environment
-        .intersect(new Ray(intersection.position.add(intersection.ray.direction), intersection.ray.direction));
-    if (throughIntersect != null) {
-      throughColor = throughIntersect.color;
+  public HitColor getColor(Intersection intersection) {
+    if (intersection.ray.depth > environment.maxDepth) {
+      return new HitColor(Color.BLACK);
     }
-    Color transmission = colorType.getColor(intersection.factor);
-    return new Color(throughColor.getRed() * transmission.getRed() / 255,
-        throughColor.getGreen() * transmission.getGreen() / 255, throughColor.getBlue() * transmission.getBlue() / 255);
-  }
-
-  public MaterialSnapshot getSnapshot() {
-    return new MaterialSnapshot(colorType, MaterialSnapshot.MatType.GLASS);
+    HitColor throughColor = new HitColor(Color.BLACK);
+    Intersection throughIntersect = environment
+        .intersect(new Ray(Vector.add(intersection.position, intersection.ray.direction), intersection.ray.direction,
+            intersection.ray.depth + 1));
+    if (throughIntersect != null) {
+      throughColor = throughIntersect.color.copy();
+      throughColor.depth++;
+    }
+    HitColor filter = new HitColor(colorType.getColor(intersection.factor));
+    return throughColor.multiply(filter);
   }
 }

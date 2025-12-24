@@ -2,17 +2,22 @@ package sketch.environment.material;
 
 import java.awt.Color;
 
+import sketch.edit.editpanel.EditPanel;
+import sketch.environment.Environment;
+import sketch.environment.HitColor;
 import sketch.environment.Intersection;
 import sketch.environment.colortype.ColorType;
-import sketch.environment.snapshot.material.MaterialSnapshot;
 
 public abstract class Material {
+  public Environment environment;
   public ColorType colorType;
   public Color matColor = Color.GRAY;
 
-  public Color getColor(Intersection intersection) {
-    return colorType.getColor(intersection.factor);
+  public HitColor getColor(Intersection intersection) {
+    return new HitColor(colorType.getColor(intersection.factor));
   }
 
-  public abstract MaterialSnapshot getSnapshot();
+  public void setupEditPanel(EditPanel editPanel) {
+    colorType.setupEditPanel(editPanel);
+  }
 }
