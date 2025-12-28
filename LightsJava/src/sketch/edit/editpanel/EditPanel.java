@@ -10,6 +10,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.image.BufferStrategy;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -24,12 +25,16 @@ public class EditPanel extends Canvas implements WindowListener {
   private EditManager editManager;
   private Graphics2D graphics;
   private DrawUtils drawUtils;
+  public int width, height;
+
   private ArrayList<EditInput> inputs = new ArrayList<>();
   private float nextAvailableY = 0;
 
   public EditPanel(Sketch sketch, EditManager editManager, int width, int height) {
     this.sketch = sketch;
     this.editManager = editManager;
+    this.width = width;
+    this.height = height;
     setPreferredSize(new Dimension(width, height));
     JFrame windowManagerFrame = sketch.windowManager.getFrame();
     dialog = new JDialog(windowManagerFrame, "Edit Object");
@@ -45,10 +50,23 @@ public class EditPanel extends Canvas implements WindowListener {
     setFocusable(true);
     requestFocus();
     drawUtils = new DrawUtils(this);
+    graphics = (Graphics2D) getBufferStrategy().getDrawGraphics();
+    drawUtils.setGraphics(graphics);
   }
 
   public JDialog getDialog() {
     return dialog;
+  }
+
+  public DrawUtils getDrawUtils() {
+    return drawUtils;
+  }
+
+  public void clearInputs() {
+    inputs.clear();
+    nextAvailableY = 0;
+    Arrays.asList(getMouseListeners()).forEach(this::removeMouseListener);
+    Arrays.asList(getMouseMotionListeners()).forEach(this::removeMouseMotionListener);
   }
 
   public void updateVisuals() {
@@ -67,7 +85,7 @@ public class EditPanel extends Canvas implements WindowListener {
   }
 
   private void draw() {
-    drawUtils.background(Color.PINK);
+    drawUtils.background(Color.GRAY);
     for (EditInput input : inputs) {
       input.show(drawUtils);
     }

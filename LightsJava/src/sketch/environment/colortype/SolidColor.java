@@ -47,7 +47,7 @@ public class SolidColor implements ColorType {
   }
 
   public void setupEditPanel(EditPanel editPanel) {
-    sliderEndX = editPanel.getWidth() - sliderStartX;
+    sliderEndX = editPanel.width - sliderStartX;
     ColorType.addColorSliders(editPanel, color, this::setRed, this::setGreen, this::setBlue, this::getRedSliderPaint,
         this::getGreenSliderPaint, this::getBlueSliderPaint);
   }

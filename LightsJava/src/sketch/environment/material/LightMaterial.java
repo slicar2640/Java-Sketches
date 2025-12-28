@@ -32,9 +32,8 @@ public class LightMaterial extends Material {
   }
 
   public void setupEditPanel(EditPanel editPanel) {
-    editPanel.addInput(new EditSlider(0, 10, strength, editPanel).setControlling(this::setStrength)
-        .setPosition(10, editPanel.getNextAvailableY() + 20).setSize(editPanel.getWidth() - 20, 20)
-        .setHandleSize(20, 30));
+    editPanel.addInput(new EditSlider(0, 3, strength, editPanel).setControlling(this::setStrength)
+        .setPosition(10, editPanel.getNextAvailableY() + 20).setSize(editPanel.width - 20, 20).setHandleSize(20, 30));
     colorType.setupEditPanel(editPanel);
   }
 }

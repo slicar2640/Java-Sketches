@@ -1,6 +1,7 @@
 package sketch.environment.shape;
 
 import java.awt.Color;
+import java.awt.geom.CubicCurve2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.stream.Collectors;
@@ -25,9 +26,8 @@ public class Bezier extends IntersectionShape {
   private EditPoint p1Tool, c1Tool, c2Tool, p2Tool;
   public HashMap<SplitColor, Bezier[]> splitSubcurves = new HashMap<>();
   public HashMap<GradientColor, Bezier[]> gradientSubcurves = new HashMap<>();
-  private int sampleNum = 30;
+  private int sampleNum = 40;
   private Vector[] samplePoints = new Vector[sampleNum];
-  private boolean isParabola = false;
 
   public Bezier(Vector p1, Vector c1, Vector c2, Vector p2) {
     this.p1 = p1;
@@ -84,77 +84,28 @@ public class Bezier extends IntersectionShape {
 
     float[] by = {-p1.y + 3 * c1.y - 3 * c2.y + p2.y, 3 * p1.y - 6 * c1.y + 3 * c2.y, -3 * p1.y + 3 * c1.y, p1.y};
 
-    float[] coeffs = {A * bx[0] + B * by[0], A * bx[1] + B * by[1], A * bx[2] + B * by[2], A * bx[3] + B * by[3] + C};
+    // double[] coeffs = {A * bx[0] + B * by[0], A * bx[1] + B * by[1], A * bx[2] +
+    // B * by[2], A * bx[3] + B * by[3] + C};
+    double[] coeffs = {A * bx[3] + B * by[3] + C, A * bx[2] + B * by[2], A * bx[1] + B * by[1], A * bx[0] + B * by[0]};
 
-    ArrayList<Float> tValues = solveCubic(coeffs[0], coeffs[1], coeffs[2], coeffs[3]);
+    double[] tValuesArr = new double[3];
+    int numT = CubicCurve2D.solveCubic(coeffs, tValuesArr);
+    ArrayList<Float> tValues = new ArrayList<>();
+    for (int i = 0; i < numT; i++) {
+      if (tValuesArr[i] >= 0 && tValuesArr[i] <= 1) {
+        tValues.add((float) tValuesArr[i]);
+      }
+    }
     ArrayList<Intersection> intersections = (ArrayList<Intersection>) tValues.stream()
         .map(t -> Intersection.stepOne(ray, pointAt(t), normalAt(t), t)).collect(Collectors.toList());
     intersections.removeIf(inter -> {
-      Vector v = Vector.sub(inter.position, ray.origin);
-      return v.dot(ray.direction) < 0;
+      return Vector.sub(inter.position, ray.origin).dot(ray.direction) < 0;
     });
     if (intersections.size() == 0)
       return null;
 
     intersections.sort((a, b) -> (int) (Vector.distSq(a.position, ray.origin) - Vector.distSq(b.position, ray.origin)));
     return intersections.get(0);
-  }
-
-  private ArrayList<Float> solveCubic(float a, float b, float c, float d) {
-    if (isParabola || Math.abs(a) < EPSILON) {
-      return solveQuadratic(b, c, d);
-    }
-
-    b /= a;
-    c /= a;
-    d /= a;
-
-    var q = (3 * c - b * b) / 9;
-    var r = (9 * b * c - 27 * d - 2 * b * b * b) / 54;
-    var discriminant = q * q * q + r * r;
-    ArrayList<Float> roots = new ArrayList<Float>();
-
-    if (discriminant > EPSILON) {
-      float sqrtDiscriminant = (float) Math.sqrt(discriminant);
-      float s = (float) Math.cbrt(r + sqrtDiscriminant);
-      float t = (float) Math.cbrt(r - sqrtDiscriminant);
-      roots.add(-b / 3 + (s + t));
-    } else if (Math.abs(discriminant) < EPSILON) {
-      float s = (float) Math.cbrt(r);
-      roots.add(-b / 3 + 2 * s);
-      roots.add(-b / 3 - s);
-    } else {
-      float theta = (float) Math.acos(r / Math.sqrt(-q * q * q));
-      float sqrtQ = (float) Math.sqrt(-q);
-      roots.add(2 * sqrtQ * (float) Math.cos(theta / 3) - b / 3);
-      roots.add(2 * sqrtQ * (float) Math.cos((theta + 2 * Math.PI) / 3) - b / 3);
-      roots.add(2 * sqrtQ * (float) Math.cos((theta + 4 * Math.PI) / 3) - b / 3);
-    }
-    roots.removeIf(root -> root < 0 || root > 1);
-    return roots;
-  }
-
-  private ArrayList<Float> solveQuadratic(float a, float b, float c) {
-    ArrayList<Float> roots = new ArrayList<Float>();
-    if (Math.abs(a) < EPSILON) {
-      if (Math.abs(b) < EPSILON) {
-        return roots;
-      }
-      roots.add(-c / b);
-      return roots;
-    }
-
-    float discriminant = b * b - 4 * a * c;
-    if (discriminant < -EPSILON) {
-    } else if (Math.abs(discriminant) < EPSILON) {
-      roots.add(-b / (2 * a));
-    } else {
-      float sqrtDiscriminant = (float) Math.sqrt(discriminant);
-      roots.add((-b + sqrtDiscriminant) / (2 * a));
-      roots.add((-b - sqrtDiscriminant) / (2 * a));
-    }
-    roots.removeIf(root -> root < 0 || root > 1);
-    return roots;
   }
 
   public float distToPoint(float mx, float my) {
@@ -170,7 +121,6 @@ public class Bezier extends IntersectionShape {
     splitSubcurves.clear();
     gradientSubcurves.clear();
     setSamplePoints();
-    isParabola = false;
   }
 
   public void setC1(float x, float y) {
@@ -178,7 +128,6 @@ public class Bezier extends IntersectionShape {
     splitSubcurves.clear();
     gradientSubcurves.clear();
     setSamplePoints();
-    isParabola = false;
   }
 
   public void setC2(float x, float y) {
@@ -186,7 +135,6 @@ public class Bezier extends IntersectionShape {
     splitSubcurves.clear();
     gradientSubcurves.clear();
     setSamplePoints();
-    isParabola = false;
   }
 
   public void setP2(float x, float y) {
@@ -194,7 +142,6 @@ public class Bezier extends IntersectionShape {
     splitSubcurves.clear();
     gradientSubcurves.clear();
     setSamplePoints();
-    isParabola = false;
   }
 
   public ArrayList<EditTool> getEditTools() {
@@ -219,13 +166,15 @@ public class Bezier extends IntersectionShape {
   }
 
   public void recalculateSubcurves(SplitColor splitColor) {
-    Bezier[] subcurves = new Bezier[splitColor.colors.length];
-    for (int i = 0; i < splitColor.colors.length; i++) {
-      float before = i == 0 ? 0 : splitColor.thresholds[i - 1];
-      float after = i == splitColor.thresholds.length ? 1 : splitColor.thresholds[i];
-      subcurves[i] = subcurve(before, after);
+    synchronized (splitSubcurves) {
+      Bezier[] subcurves = new Bezier[splitColor.colors.length];
+      for (int i = 0; i < splitColor.colors.length; i++) {
+        float before = i == 0 ? 0 : splitColor.thresholds[i - 1];
+        float after = i == splitColor.thresholds.length ? 1 : splitColor.thresholds[i];
+        subcurves[i] = subcurve(before, after);
+      }
+      splitSubcurves.put(splitColor, subcurves);
     }
-    splitSubcurves.put(splitColor, subcurves);
   }
 
   public void show(Material mat, DrawUtils drawUtils) {
@@ -262,11 +211,13 @@ public class Bezier extends IntersectionShape {
         splitSubcurves.put(c, subcurves);
         c.addBezier(this);
       }
-      Bezier[] subcurves = splitSubcurves.get(c);
-      for (int i = 0; i < c.colors.length; i++) {
-        Bezier b = subcurves[i];
-        drawUtils.stroke(c.colors[i]);
-        drawUtils.bezier(b.p1.x, b.p1.y, b.c1.x, b.c1.y, b.c2.x, b.c2.y, b.p2.x, b.p2.y);
+      synchronized (splitSubcurves) {
+        Bezier[] subcurves = splitSubcurves.get(c);
+        for (int i = 0; i < c.colors.length; i++) {
+          Bezier b = subcurves[i];
+          drawUtils.stroke(c.colors[i]);
+          drawUtils.bezier(b.p1.x, b.p1.y, b.c1.x, b.c1.y, b.c2.x, b.c2.y, b.p2.x, b.p2.y);
+        }
       }
     }
   }
@@ -286,7 +237,6 @@ public class Bezier extends IntersectionShape {
     Vector c2 = vertex.copy().add(Vector.mult(perp, extent / 3)).sub(Vector.div(offset, 3));
     Vector p2 = vertex.copy().add(Vector.mult(perp, extent)).add(offset);
     Bezier b = new Bezier(p1, c1, c2, p2);
-    b.isParabola = true;
     return b;
   }
 

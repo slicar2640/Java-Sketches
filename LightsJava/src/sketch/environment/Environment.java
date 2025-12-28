@@ -27,15 +27,16 @@ public class Environment {
     this.maxDepth = maxDepth;
   }
 
-  public void addObject(EnvironmentObject object) {
+  public EnvironmentObject addObject(EnvironmentObject object) {
     objects.add(object);
     object.setEnvironment(this);
+    return object;
   }
 
-  public void addRandomObject() {
+  public EnvironmentObject addRandomObject() {
     IntersectionShape shape = randomShape();
     Material material = randomMaterial();
-    addObject(new EnvironmentObject(shape, material));
+    return addObject(new EnvironmentObject(shape, material));
   }
 
   public ArrayList<EnvironmentObject> getObjects() {

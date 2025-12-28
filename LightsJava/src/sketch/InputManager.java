@@ -43,11 +43,7 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
   @Override
   public void mousePressed(MouseEvent e) {
     if (sketch.getState() == Sketch.State.EDIT) {
-      if (e.isShiftDown()) {
-        sketch.editManager.selectObjectAt(e.getX(), e.getY());
-      } else {
-        sketch.editManager.selectToolAt(e.getX(), e.getY());
-      }
+      sketch.editManager.mousePressed(e);
     }
   }
 

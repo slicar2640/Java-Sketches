@@ -1,6 +1,7 @@
 package sketch.edit;
 
 import java.awt.Cursor;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 
 import sketch.Sketch;
@@ -74,10 +75,21 @@ public class EditManager {
     }
   }
 
+  public void mousePressed(MouseEvent e) {
+    if (e.isShiftDown()) {
+      selectObjectAt(e.getX(), e.getY());
+    } else {
+      selectToolAt(e.getX(), e.getY());
+    }
+  }
+
   public void selectObjectAt(int mx, int my) {
     synchronized (selectionLock) {
       for (EnvironmentObject object : environment.getObjects()) {
         if (object.shape.distToPoint(mx, my) < objectClickDist) {
+          if (selectedObject != object && editPanel != null) {
+            closeEditPanel();
+          }
           selectedObject = object;
           deselectTool();
           return;

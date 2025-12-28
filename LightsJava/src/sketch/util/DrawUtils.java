@@ -10,8 +10,10 @@ import java.awt.Image;
 import java.awt.Paint;
 import java.awt.Point;
 import java.awt.Polygon;
+import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.Toolkit;
+import java.awt.font.FontRenderContext;
 import java.awt.geom.Arc2D;
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.Ellipse2D;
@@ -32,7 +34,7 @@ public class DrawUtils {
     }
   }
 
-  private final Font baseFont = new Font("Arial", Font.PLAIN, 16);
+  private final Font baseFont = new Font("Arial", Font.PLAIN, 1);
   private Canvas canvas;
   private Graphics2D graphics;
 
@@ -164,6 +166,17 @@ public class DrawUtils {
     }
   }
 
+  public void drawShape(Shape shape) {
+    if (fillPaint != null) {
+      graphics.setPaint(fillPaint);
+      graphics.fill(shape);
+    }
+    if (strokePaint != null) {
+      graphics.setPaint(strokePaint);
+      graphics.draw(shape);
+    }
+  }
+
   public void bezier(float x1, float y1, float cx1, float cy1, float cx2, float cy2, float x2, float y2) {
     if (fillPaint != null) {
       graphics.setPaint(fillPaint);
@@ -175,17 +188,19 @@ public class DrawUtils {
     }
   }
 
-  public int stringWidth(String string, float size) {
-    Font font = baseFont.deriveFont(size);
-    return graphics.getFontMetrics(font).stringWidth(string);
+  public int stringWidth(String string, float sizePx) {
+    Font font = baseFont.deriveFont((float) (sizePx * 96f / 72f));
+    FontRenderContext frc = new FontRenderContext(null, true, true);
+    Rectangle2D bounds = font.getStringBounds(string, frc);
+    return (int) Math.round(bounds.getWidth());
   }
 
-  public void text(String txt, float x, float y, float size, TextAlign align) {
-    Font font = baseFont.deriveFont(size);
+  public void text(String txt, float x, float y, float sizePx, TextAlign align) {
+    Font font = baseFont.deriveFont(sizePx * 96 / 72);
     graphics.setFont(font);
     float textWidth = graphics.getFontMetrics().stringWidth(txt);
     float realX = x - align.horiz * textWidth / 2;
-    float realY = y + align.vert * size * 72 / 96 / 2;
+    float realY = y + align.vert * sizePx / 2;
     if (fillPaint != null) {
       graphics.setPaint(fillPaint);
       graphics.drawString(txt, realX, realY);

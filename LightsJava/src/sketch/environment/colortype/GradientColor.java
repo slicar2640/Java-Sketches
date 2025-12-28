@@ -76,7 +76,7 @@ public class GradientColor implements ColorType {
   }
 
   public void setupEditPanel(EditPanel editPanel) {
-    sliderEndX = editPanel.getWidth() - sliderStartX;
+    sliderEndX = editPanel.width - sliderStartX;
     ColorType.addColorSliders(editPanel, color1, this::setRed1, this::setGreen1, this::setBlue1,
         this::getRed1SliderPaint, this::getGreen1SliderPaint, this::getBlue1SliderPaint);
     editPanel.addBlankSpace(20);

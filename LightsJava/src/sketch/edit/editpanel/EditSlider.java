@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Paint;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.function.Consumer;
 
@@ -88,10 +87,6 @@ public class EditSlider extends EditInput implements MouseMotionListener {
     return new Rectangle2D.Float(minX, minY, maxX - minX, maxY - minY);
   }
 
-  protected boolean pointHits(Point2D p) {
-    return getTrackBounds().contains(p) || getHandleBounds().contains(p);
-  }
-
   private void dragTo(float mx) {
     float realX = Math.clamp(mx, x, x + trackWidth);
     value = MathUtils.map(realX, x, x + trackWidth, min, max);
@@ -121,7 +116,7 @@ public class EditSlider extends EditInput implements MouseMotionListener {
   }
 
   public void mousePressed(MouseEvent e) {
-    if (pointHits(e.getPoint())) {
+    if (getTrackBounds().contains(e.getPoint()) || getHandleBounds().contains(e.getPoint())) {
       dragTo(e.getX());
       editPanel.addMouseMotionListener(this);
     }

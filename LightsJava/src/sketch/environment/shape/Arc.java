@@ -100,7 +100,7 @@ public class Arc extends IntersectionShape {
   }
 
   public float distToPoint(float mx, float my) {
-    if (angleHits((float) ((Math.atan2(my - center.y, mx - center.y) + 2 * Math.PI) % (2 * Math.PI)))) {
+    if (angleHits((float) ((Math.atan2(my - center.y, mx - center.x) + 2 * Math.PI) % (2 * Math.PI)))) {
       return Math.abs(center.dist(mx, my) - radius);
     } else {
       return (float) Math

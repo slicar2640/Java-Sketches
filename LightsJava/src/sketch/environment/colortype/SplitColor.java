@@ -91,11 +91,11 @@ public class SplitColor implements ColorType {
 
   public void setupEditPanel(EditPanel editPanel) {
     currentColorEditIndex = 0;
-    sliderEndX = editPanel.getWidth() - sliderStartX;
+    sliderEndX = editPanel.width - sliderStartX;
     editPanel.addInput(new EditMultiSlider(0, 1, Arrays.copyOf(thresholds, thresholds.length), editPanel)
         .setControlling(this::setThresholds).setPosition(10, editPanel.getNextAvailableY() + 20)
-        .setSize(editPanel.getWidth() - 20, 20).setHandleSize(10, 30));
-    editPanel.addInput(new EditPageSelect(0, colors.length, currentColorEditIndex, editPanel)
+        .setSize(editPanel.width - 20, 20).setHandleSize(10, 30));
+    editPanel.addInput(new EditPageSelect(0, colors.length - 1, currentColorEditIndex, editPanel)
         .setPosition(10, editPanel.getNextAvailableY() + 20).setButtonSize(30, 30)
         .setControlling(this::setCurrentColorEditIndex));
     colorSliders = ColorType.addColorSliders(editPanel, colors[0], this::setRed, this::setGreen, this::setBlue,

@@ -138,6 +138,9 @@ public class WindowManager extends Canvas implements Runnable {
 
     if (sketch.getState() == Sketch.State.DEBUG) {
       sketch.environment.showMaterials(drawUtils);
+      drawUtils.noStroke();
+      drawUtils.fill(Color.orange);
+      drawUtils.rect(10, 10, 50, 20);
       drawUtils.fill(Color.WHITE);
       drawUtils.text(Integer.toString((int) frameRate), 10, 10, 20, TextAlign.LEFT_TOP);
     }

@@ -43,7 +43,26 @@ public class EditPageSelect extends EditInput {
   public EditPageSelect setButtonSize(float w, float h) {
     buttonWidth = w;
     height = h;
-    numberSize = (h - 4) * 72 / 96;
+    numberSize = h - 8;
+    calculateNumberBoxWidth();
+    return this;
+  }
+
+  public EditPageSelect styleButtons(Paint bg, WeightedStroke symbolStroke) {
+    buttonBackgroundPaint = bg;
+    buttonSymbolStroke = symbolStroke;
+    return this;
+  }
+
+  public EditPageSelect styleNumberBox(Paint bg, Paint numPaint, float numSize) {
+    numberBackgroundPaint = bg;
+    numberPaint = numPaint;
+    numberSize = numSize;
+    return this;
+  }
+
+  public EditPageSelect setStroke(WeightedStroke stroke) {
+    this.stroke = stroke;
     return this;
   }
 
@@ -52,8 +71,8 @@ public class EditPageSelect extends EditInput {
     return this;
   }
 
-  private void calculateNumberBoxWidth(DrawUtils drawUtils) {
-    this.numberBoxWidth = drawUtils.stringWidth(" " + Integer.toString(value) + " ", numberSize);
+  private void calculateNumberBoxWidth() {
+    this.numberBoxWidth = editPanel.getDrawUtils().stringWidth(" " + Integer.toString(value) + " ", numberSize);
   }
 
   public Rectangle2D.Float getBounds() {
@@ -71,13 +90,14 @@ public class EditPageSelect extends EditInput {
   public void mousePressed(MouseEvent e) {
     if (getLeftButtonBounds().contains(e.getPoint()) && value > min) {
       value--;
-      controlValue();
-      editPanel.updateVisuals();
     } else if (getRightButtonBounds().contains(e.getPoint()) && value < max) {
       value++;
-      controlValue();
-      editPanel.updateVisuals();
+    } else {
+      return;
     }
+    controlValue();
+    editPanel.updateVisuals();
+    calculateNumberBoxWidth();
   }
 
   public void controlValue() {
@@ -87,7 +107,6 @@ public class EditPageSelect extends EditInput {
   }
 
   public void show(DrawUtils drawUtils) {
-    calculateNumberBoxWidth(drawUtils);
     drawUtils.fill(buttonBackgroundPaint);
     drawUtils.noStroke();
     drawUtils.rect(x, y, buttonWidth, height);
