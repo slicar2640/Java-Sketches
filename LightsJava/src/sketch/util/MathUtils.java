@@ -26,6 +26,10 @@ public class MathUtils {
     return toMin + (v - fromMin) * (toMax - toMin) / (fromMax - fromMin);
   }
 
+  public static float clampMap(float v, float fromMin, float fromMax, float toMin, float toMax) {
+    return Math.clamp(map(v, fromMin, fromMax, toMin, toMax), toMin, toMax);
+  }
+
   public static int firstOddBefore(int x) {
     return (int) ((x - 1) / 2) * 2 + 1;
   }

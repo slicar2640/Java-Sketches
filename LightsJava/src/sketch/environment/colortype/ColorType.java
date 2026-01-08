@@ -13,9 +13,9 @@ import sketch.util.DynamicPaint;
 public interface ColorType {
   public Color getColor(float t);
 
-  public ColorType copy();
-
   public void setupEditPanel(EditPanel editPanel);
+
+  public ColorType copy();
 
   public static EditSlider[] addColorSliders(EditPanel editPanel, Color initialColor, Consumer<Float> redConsumer,
       Consumer<Float> greenConsumer, Consumer<Float> blueConsumer, Supplier<Paint> redSliderPaint,
@@ -34,4 +34,6 @@ public interface ColorType {
             .styleTrack(new DynamicPaint(blueSliderPaint), new WeightedStroke(Color.BLACK, 2)));
     return sliders;
   }
+
+  public void getSaveString(StringBuilder sb);
 }

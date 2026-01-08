@@ -25,12 +25,14 @@ public class EditPoint extends EditTool {
     return y;
   }
 
+  @Override
   public void drag(float mx, float my) {
     x = mx;
     y = my;
     controlling.accept(x, y);
   }
 
+  @Override
   public void show(DrawUtils drawUtils) {
     if (highlighted) {
       drawUtils.stroke(Color.ORANGE);
@@ -41,6 +43,7 @@ public class EditPoint extends EditTool {
     drawUtils.circle(x, y, hoverRadius);
   }
 
+  @Override
   public boolean isHovered(float mx, float my) {
     return Vector.dist(x, y, mx, my) <= hoverRadius;
   }

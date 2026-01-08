@@ -12,7 +12,7 @@ import sketch.util.DrawUtils;
 import sketch.util.DrawUtils.TextAlign;
 import sketch.util.DrawUtils.WeightedStroke;
 
-public class EditCarousel extends EditInput {
+public class EditCarousel extends EditInput<String> {
   private WeightedStroke stroke = new WeightedStroke(Color.BLACK, 2);
   private Paint middleBackgroundPaint = Color.LIGHT_GRAY;
   private Paint middleTextPaint = Color.BLACK;
@@ -26,8 +26,6 @@ public class EditCarousel extends EditInput {
   private float x, y;
   private float height;
   private HashMap<String, Rectangle2D.Float> buttonBounds = new HashMap<>();
-
-  private Consumer<String> controlling;
 
   public EditCarousel(String[] options, int index, EditPanel editPanel) {
     this.options = options;
@@ -87,6 +85,7 @@ public class EditCarousel extends EditInput {
     }
   }
 
+  @Override
   public Rectangle2D.Float getBounds() {
     float minX = Float.MAX_VALUE;
     for (String option : options) {
@@ -99,11 +98,11 @@ public class EditCarousel extends EditInput {
     return new Rectangle2D.Float(minX, y, width, height);
   }
 
-  public Rectangle2D.Float getMiddleBounds() {
+  private Rectangle2D.Float getMiddleBounds() {
     return buttonBounds.get(options[chosenIndex]);
   }
 
-  public void calculateButtonBounds() {
+  private void calculateButtonBounds() {
     ArrayList<String> optionOrder = new ArrayList<>(options.length);
     int middleIndex = (options.length - 1) / 2;
     for (String option : options) {
@@ -126,12 +125,14 @@ public class EditCarousel extends EditInput {
     }
   }
 
+  @Override
   public void controlValue() {
     if (controlling != null) {
       controlling.accept(options[chosenIndex]);
     }
   }
 
+  @Override
   public void show(DrawUtils drawUtils) {
     if (open) {
       drawUtils.stroke(stroke);
@@ -159,6 +160,7 @@ public class EditCarousel extends EditInput {
         TextAlign.CENTER_CENTER);
   }
 
+  @Override
   public void mousePressed(MouseEvent e) {
     if (getMiddleBounds().contains(e.getPoint())) {
       open = !open;

@@ -16,10 +16,12 @@ public class DynamicPaint implements Paint {
     this.supplier = supplier;
   }
 
+  @Override
   public int getTransparency() {
     return supplier.get().getTransparency();
   }
 
+  @Override
   public PaintContext createContext(ColorModel cm, Rectangle deviceBounds, Rectangle2D userBounds,
       AffineTransform xform, RenderingHints hints) {
     return supplier.get().createContext(cm, deviceBounds, userBounds, xform, hints);

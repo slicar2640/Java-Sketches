@@ -1,4 +1,4 @@
-package sketch;
+package sketch.managers;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
@@ -8,6 +8,8 @@ import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 
+import sketch.Sketch;
+import sketch.managers.StateManager.State;
 import sketch.util.Vector;
 
 public class InputManager implements KeyListener, MouseListener, MouseMotionListener, MouseWheelListener {
@@ -19,14 +21,9 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
   }
 
   @Override
-  public void mouseWheelMoved(MouseWheelEvent e) {
-
-  }
-
-  @Override
   public void mouseDragged(MouseEvent e) {
     mouse.set(e.getX(), e.getY());
-    if (sketch.getState() == Sketch.State.EDIT) {
+    if (sketch.stateManager.getState() == State.EDIT) {
       sketch.editManager.drag(e.getX(), e.getY());
     }
   }
@@ -37,21 +34,25 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
   }
 
   @Override
-  public void mouseClicked(MouseEvent e) {
-  }
-
-  @Override
   public void mousePressed(MouseEvent e) {
-    if (sketch.getState() == Sketch.State.EDIT) {
+    if (sketch.stateManager.getState() == State.EDIT) {
       sketch.editManager.mousePressed(e);
     }
   }
 
   @Override
   public void mouseReleased(MouseEvent e) {
-    if (sketch.getState() == Sketch.State.EDIT) {
+    if (sketch.stateManager.getState() == State.EDIT) {
       sketch.editManager.deselectTool();
     }
+  }
+
+  @Override
+  public void mouseWheelMoved(MouseWheelEvent e) {
+  }
+
+  @Override
+  public void mouseClicked(MouseEvent e) {
   }
 
   @Override
@@ -69,9 +70,9 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
   @Override
   public void keyPressed(KeyEvent e) {
     if (e.getKeyChar() == ' ') {
-      sketch.stateChange(Sketch.State.DEBUG);
+      sketch.stateManager.changeState(State.DEBUG);
     } else if (e.getKeyChar() == 'E') {
-      sketch.stateChange(Sketch.State.EDIT);
+      sketch.stateManager.changeState(State.EDIT);
     } else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
       sketch.editManager.tryToOpenEditPanel();
     }
@@ -80,5 +81,4 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
   @Override
   public void keyReleased(KeyEvent e) {
   }
-
 }

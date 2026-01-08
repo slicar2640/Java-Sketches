@@ -10,7 +10,7 @@ import sketch.util.DrawUtils;
 import sketch.util.DrawUtils.TextAlign;
 import sketch.util.DrawUtils.WeightedStroke;
 
-public class EditPageSelect extends EditInput {
+public class EditPageSelect extends EditInput<Integer> {
   private Paint buttonBackgroundPaint = Color.LIGHT_GRAY;
   private WeightedStroke buttonSymbolStroke = new WeightedStroke(Color.GRAY, 2);
   private WeightedStroke stroke = new WeightedStroke(Color.BLACK, 2);
@@ -24,8 +24,6 @@ public class EditPageSelect extends EditInput {
 
   private float x, y;
   private float buttonWidth, numberBoxWidth, height;
-
-  private Consumer<Integer> controlling;
 
   public EditPageSelect(int min, int max, int value, EditPanel editPanel) {
     this.min = min;
@@ -75,6 +73,7 @@ public class EditPageSelect extends EditInput {
     this.numberBoxWidth = editPanel.getDrawUtils().stringWidth(" " + Integer.toString(value) + " ", numberSize);
   }
 
+  @Override
   public Rectangle2D.Float getBounds() {
     return new Rectangle2D.Float(x, y, numberBoxWidth + buttonWidth * 2, height);
   }
@@ -87,25 +86,42 @@ public class EditPageSelect extends EditInput {
     return new Rectangle2D.Float(x + buttonWidth + numberBoxWidth, y, buttonWidth, height);
   }
 
-  public void mousePressed(MouseEvent e) {
-    if (getLeftButtonBounds().contains(e.getPoint()) && value > min) {
-      value--;
-    } else if (getRightButtonBounds().contains(e.getPoint()) && value < max) {
-      value++;
-    } else {
-      return;
-    }
-    controlValue();
-    editPanel.updateVisuals();
-    calculateNumberBoxWidth();
-  }
-
+  @Override
   public void controlValue() {
     if (controlling != null) {
       controlling.accept(value);
     }
   }
 
+  public int getMin() {
+    return min;
+  }
+
+  public void setMin(int min) {
+    this.min = min;
+    if (value < min) {
+      value = min;
+      controlValue();
+      editPanel.updateVisuals();
+      calculateNumberBoxWidth();
+    }
+  }
+
+  public int getMax() {
+    return max;
+  }
+
+  public void setMax(int max) {
+    this.max = max;
+    if (value > max) {
+      value = max;
+      controlValue();
+      editPanel.updateVisuals();
+      calculateNumberBoxWidth();
+    }
+  }
+
+  @Override
   public void show(DrawUtils drawUtils) {
     drawUtils.fill(buttonBackgroundPaint);
     drawUtils.noStroke();
@@ -131,5 +147,18 @@ public class EditPageSelect extends EditInput {
     drawUtils.line(x + buttonWidth + numberBoxWidth, y, x + buttonWidth + numberBoxWidth, y + height);
     drawUtils.noFill();
     drawUtils.rect(x, y, numberBoxWidth + buttonWidth * 2, height);
+  }
+
+  public void mousePressed(MouseEvent e) {
+    if (getLeftButtonBounds().contains(e.getPoint()) && value > min) {
+      value--;
+    } else if (getRightButtonBounds().contains(e.getPoint()) && value < max) {
+      value++;
+    } else {
+      return;
+    }
+    controlValue();
+    editPanel.updateVisuals();
+    calculateNumberBoxWidth();
   }
 }

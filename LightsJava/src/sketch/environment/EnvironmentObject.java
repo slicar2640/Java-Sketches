@@ -116,4 +116,10 @@ public class EnvironmentObject {
   public ArrayList<EditTool> getTools() {
     return shape.getEditTools();
   }
+
+  public void getSaveString(StringBuilder sb) {
+    shape.getSaveString(sb);
+    sb.append('\n');
+    material.getSaveString(sb);
+  }
 }

@@ -14,19 +14,26 @@ public class GlassMaterial extends Material {
     matColor = new Color(180, 0, 30);
   }
 
+  @Override
   public HitColor getColor(Intersection intersection) {
     if (intersection.ray.depth > environment.maxDepth) {
       return new HitColor(Color.BLACK);
     }
     HitColor throughColor = new HitColor(Color.BLACK);
     Intersection throughIntersect = environment
-        .intersect(new Ray(Vector.add(intersection.position, intersection.ray.direction), intersection.ray.direction,
-            intersection.ray.depth + 1));
+        .intersect(new Ray(Vector.add(intersection.position, intersection.ray.getDirection()),
+            intersection.ray.getDirection(), intersection.ray.depth + 1));
     if (throughIntersect != null) {
       throughColor = throughIntersect.color.copy();
       throughColor.depth++;
     }
     HitColor filter = new HitColor(colorType.getColor(intersection.factor));
     return throughColor.multiply(filter);
+  }
+
+  @Override
+  public void getSaveString(StringBuilder sb) {
+    sb.append("Glass\n");
+    colorType.getSaveString(sb);
   }
 }

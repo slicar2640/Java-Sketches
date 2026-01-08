@@ -14,13 +14,15 @@ public abstract class IntersectionShape {
 
   public abstract Intersection intersect(Ray ray);
 
-  public abstract void show(Material mat, DrawUtils drawUtils);
-
-  public abstract void showMaterial(Material mat, DrawUtils drawUtils);
+  public abstract float distToPoint(float mx, float my);
 
   public abstract ArrayList<EditTool> getEditTools();
 
   public abstract void showEditTools(DrawUtils drawUtils);
 
-  public abstract float distToPoint(float mx, float my);
+  public abstract void show(Material mat, DrawUtils drawUtils);
+
+  public abstract void showMaterial(Material mat, DrawUtils drawUtils);
+
+  public abstract void getSaveString(StringBuilder sb);
 }

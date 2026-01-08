@@ -15,45 +15,54 @@ public class SolidColor implements ColorType {
     color = c;
   }
 
+  @Override
   public Color getColor(float t) {
     return color;
   }
 
-  public void setRed(float r) {
+  private void setRed(float r) {
     color = new Color(r / 255f, color.getGreen() / 255f, color.getBlue() / 255f);
   }
 
-  public void setGreen(float g) {
+  private void setGreen(float g) {
     color = new Color(color.getRed() / 255f, g / 255f, color.getBlue() / 255f);
   }
 
-  public void setBlue(float b) {
+  private void setBlue(float b) {
     color = new Color(color.getRed() / 255f, color.getGreen() / 255f, b / 255f);
   }
 
-  public Paint getRedSliderPaint() {
+  private Paint getRedSliderPaint() {
     return new GradientPaint(new Point((int) sliderStartX, 0), new Color(0, color.getGreen(), color.getBlue()),
         new Point((int) sliderEndX, 0), new Color(255, color.getGreen(), color.getBlue()));
   }
 
-  public Paint getGreenSliderPaint() {
+  private Paint getGreenSliderPaint() {
     return new GradientPaint(new Point((int) sliderStartX, 0), new Color(color.getRed(), 0, color.getBlue()),
         new Point((int) sliderEndX, 0), new Color(color.getRed(), 255, color.getBlue()));
   }
 
-  public Paint getBlueSliderPaint() {
+  private Paint getBlueSliderPaint() {
     return new GradientPaint(new Point((int) sliderStartX, 0), new Color(color.getRed(), color.getGreen(), 0),
         new Point((int) sliderEndX, 0), new Color(color.getRed(), color.getGreen(), 255));
   }
 
+  @Override
   public void setupEditPanel(EditPanel editPanel) {
     sliderEndX = editPanel.width - sliderStartX;
     ColorType.addColorSliders(editPanel, color, this::setRed, this::setGreen, this::setBlue, this::getRedSliderPaint,
         this::getGreenSliderPaint, this::getBlueSliderPaint);
   }
 
+  @Override
   public ColorType copy() {
     return new SolidColor(new Color(color.getRGB()));
+  }
+
+  @Override
+  public void getSaveString(StringBuilder sb) {
+    sb.append("Solid\n");
+    sb.append(String.format("#%06X", (color.getRGB() & 0xFFFFFF)));
   }
 
   public static SolidColor random() {

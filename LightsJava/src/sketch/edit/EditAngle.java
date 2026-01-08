@@ -20,11 +20,13 @@ public class EditAngle extends EditTool {
     this.controlling = controlling;
   }
 
+  @Override
   public void drag(float mx, float my) {
     angle = (float) (Math.toDegrees(Math.atan2(my - center.getY(), mx - center.getX())) + 360) % 360;
     controlling.accept(angle);
   }
 
+  @Override
   public void show(DrawUtils drawUtils) {
     if (highlighted) {
       drawUtils.stroke(Color.ORANGE);
@@ -37,6 +39,7 @@ public class EditAngle extends EditTool {
         center.getY() + radius.getRadius() * (float) Math.sin(Math.toRadians(angle)));
   }
 
+  @Override
   public boolean isHovered(float mx, float my) {
     return pointToSegmentDistance(center.getX(), center.getY(),
         center.getX() + radius.getRadius() * (float) Math.cos(Math.toRadians(angle)),

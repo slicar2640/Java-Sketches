@@ -3,15 +3,13 @@ package sketch.environment;
 import java.util.ArrayList;
 
 import sketch.Sketch;
-import sketch.environment.colortype.ColorType;
-import sketch.environment.colortype.GradientColor;
-import sketch.environment.colortype.SolidColor;
-import sketch.environment.colortype.SplitColor;
+import sketch.environment.colortype.*;
 import sketch.environment.material.GlassMaterial;
 import sketch.environment.material.LightMaterial;
 import sketch.environment.material.Material;
 import sketch.environment.shape.Arc;
 import sketch.environment.shape.Bezier;
+import sketch.environment.shape.Circle;
 import sketch.environment.shape.IntersectionShape;
 import sketch.environment.shape.Line;
 import sketch.util.DrawUtils;
@@ -43,14 +41,20 @@ public class Environment {
     return objects;
   }
 
+  public void clearObjects() {
+    objects.clear();
+  }
+
   public IntersectionShape randomShape() {
-    int option = (int) (Math.random() * 3);
+    int option = (int) (Math.random() * 4);
     switch (option) {
     case 0:
       return Line.random(sketch.windowManager.width, sketch.windowManager.height);
     case 1:
       return Arc.random(sketch.windowManager.width, sketch.windowManager.height);
     case 2:
+      return Circle.random(sketch.windowManager.width, sketch.windowManager.height);
+    case 3:
     default:
       return Bezier.random(sketch.windowManager.width, sketch.windowManager.height);
     }
@@ -96,7 +100,7 @@ public class Environment {
       Intersection objIntersection = obj.intersect(ray);
       if (objIntersection == null)
         continue;
-      float d = Vector.distSq(ray.origin, objIntersection.position); // squared distance
+      float d = Vector.distSq(ray.getOrigin(), objIntersection.position); // squared distance
       if (d < minDist) {
         minDist = d;
         intersection = objIntersection;
@@ -115,5 +119,14 @@ public class Environment {
     for (EnvironmentObject o : objects) {
       o.showMaterial(drawUtils);
     }
+  }
+
+  public String getSaveString() {
+    StringBuilder sb = new StringBuilder();
+    for (EnvironmentObject object : objects) {
+      object.getSaveString(sb);
+      sb.append("\n\n");
+    }
+    return sb.toString();
   }
 }

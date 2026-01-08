@@ -11,7 +11,7 @@ import sketch.util.DrawUtils;
 import sketch.util.DrawUtils.WeightedStroke;
 import sketch.util.MathUtils;
 
-public class EditSlider extends EditInput implements MouseMotionListener {
+public class EditSlider extends EditInput<Float> implements MouseMotionListener {
   private Paint trackPaint = Color.DARK_GRAY;
   private WeightedStroke trackStroke = new WeightedStroke(Color.BLACK, 2);
   private Paint handlePaint = Color.LIGHT_GRAY;
@@ -23,8 +23,6 @@ public class EditSlider extends EditInput implements MouseMotionListener {
   private float x, y;
   private float trackWidth, trackHeight;
   private float handleWidth, handleHeight;
-
-  private Consumer<Float> controlling;
 
   public EditSlider(float min, float max, float value, EditPanel editPanel) {
     this.min = min;
@@ -68,16 +66,17 @@ public class EditSlider extends EditInput implements MouseMotionListener {
     return this;
   }
 
-  public Rectangle2D.Float getHandleBounds() {
+  private Rectangle2D.Float getHandleBounds() {
     float hx = MathUtils.map(value, min, max, x, x + trackWidth) - handleWidth / 2;
     float hy = y + trackHeight / 2 - handleHeight / 2;
     return new Rectangle2D.Float(hx, hy, handleWidth, handleHeight);
   }
 
-  public Rectangle2D.Float getTrackBounds() {
+  private Rectangle2D.Float getTrackBounds() {
     return new Rectangle2D.Float(x, y, trackWidth, trackHeight);
   }
 
+  @Override
   public Rectangle2D.Float getBounds() {
     Rectangle2D.Float handleBounds = getHandleBounds();
     float minX = Math.min(x, handleBounds.x);
@@ -88,8 +87,7 @@ public class EditSlider extends EditInput implements MouseMotionListener {
   }
 
   private void dragTo(float mx) {
-    float realX = Math.clamp(mx, x, x + trackWidth);
-    value = MathUtils.map(realX, x, x + trackWidth, min, max);
+    value = MathUtils.clampMap(mx, x, x + trackWidth, min, max);
     controlValue();
     editPanel.updateVisuals();
   }
@@ -99,12 +97,14 @@ public class EditSlider extends EditInput implements MouseMotionListener {
     editPanel.updateVisuals();
   }
 
+  @Override
   public void controlValue() {
     if (controlling != null) {
       controlling.accept(value);
     }
   }
 
+  @Override
   public void show(DrawUtils drawUtils) {
     drawUtils.stroke(trackStroke);
     drawUtils.fill(trackPaint);
@@ -115,6 +115,7 @@ public class EditSlider extends EditInput implements MouseMotionListener {
     drawUtils.rect(handleBounds.x, handleBounds.y, handleBounds.width, handleBounds.height);
   }
 
+  @Override
   public void mousePressed(MouseEvent e) {
     if (getTrackBounds().contains(e.getPoint()) || getHandleBounds().contains(e.getPoint())) {
       dragTo(e.getX());
@@ -122,14 +123,17 @@ public class EditSlider extends EditInput implements MouseMotionListener {
     }
   }
 
+  @Override
   public void mouseDragged(MouseEvent e) {
     dragTo(e.getX());
   }
 
+  @Override
   public void mouseReleased(MouseEvent e) {
     editPanel.removeMouseMotionListener(this);
   }
 
+  @Override
   public void mouseMoved(MouseEvent e) {
   }
 }

@@ -6,20 +6,19 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.Paint;
 import java.awt.Point;
 import java.awt.Polygon;
 import java.awt.Shape;
 import java.awt.Stroke;
-import java.awt.Toolkit;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.Arc2D;
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
-import java.util.HashMap;
+
+import sketch.Sketch;
 
 public class DrawUtils {
   public static enum TextAlign {
@@ -34,17 +33,17 @@ public class DrawUtils {
     }
   }
 
-  private final Font baseFont = new Font("Arial", Font.PLAIN, 1);
+  private final Font baseFont = new Font("SansSerif", Font.PLAIN, 1);
   private Canvas canvas;
+  private Sketch sketch;
   private Graphics2D graphics;
 
   private Paint strokePaint;
   private Paint fillPaint;
 
-  private HashMap<String, Cursor> cursorMap = new HashMap<>();
-
-  public DrawUtils(Canvas canvas) {
+  public DrawUtils(Canvas canvas, Sketch sketch) {
     this.canvas = canvas;
+    this.sketch = sketch;
   }
 
   public void setGraphics(Graphics2D graphics) {
@@ -55,16 +54,12 @@ public class DrawUtils {
     return graphics;
   }
 
-  public void setCursorIcon(String name, Image icon) {
-    cursorMap.put(name, Toolkit.getDefaultToolkit().createCustomCursor(icon, new Point(16, 16), name));
-  }
-
   public void setCursor(int cursorType) {
     canvas.setCursor(Cursor.getPredefinedCursor(cursorType));
   }
 
   public void setCursor(String cursorName) {
-    canvas.setCursor(cursorMap.get(cursorName));
+    canvas.setCursor(sketch.cursorMap.get(cursorName));
   }
 
   public void background(Paint p) {

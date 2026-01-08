@@ -136,6 +136,10 @@ public class Vector {
     return "(%.2f, %.2f)".formatted(x, y);
   }
 
+  public String toStringPrecise() {
+    return "(%f, %f)".formatted(x, y);
+  }
+
   public Point2D.Float toPoint() {
     return new Point2D.Float(x, y);
   }
@@ -174,6 +178,14 @@ public class Vector {
 
   public static float distSq(Vector a, Vector b) {
     return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
+  }
+
+  public static Vector min(Vector a, Vector b) {
+    return new Vector(Math.min(a.x, b.x), Math.min(a.y, b.y));
+  }
+
+  public static Vector max(Vector a, Vector b) {
+    return new Vector(Math.max(a.x, b.x), Math.max(a.y, b.y));
   }
 
   public static Vector lerp(Vector a, Vector b, float t) {

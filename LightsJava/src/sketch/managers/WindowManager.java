@@ -1,4 +1,4 @@
-package sketch;
+package sketch.managers;
 
 import java.awt.Canvas;
 import java.awt.Color;
@@ -12,9 +12,11 @@ import java.awt.image.DataBufferInt;
 
 import javax.swing.JFrame;
 
+import sketch.Sketch;
 import sketch.environment.HitColor;
 import sketch.environment.Intersection;
 import sketch.environment.Ray;
+import sketch.managers.StateManager.State;
 import sketch.util.DrawUtils;
 import sketch.util.Vector;
 import sketch.util.DrawUtils.TextAlign;
@@ -48,7 +50,7 @@ public class WindowManager extends Canvas implements Runnable {
     createBufferStrategy(3);
     setFocusable(true);
     requestFocus();
-    drawUtils = new DrawUtils(this);
+    drawUtils = new DrawUtils(this, sketch);
     scene = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     pixels = ((DataBufferInt) scene.getRaster().getDataBuffer()).getData();
   }
@@ -75,6 +77,7 @@ public class WindowManager extends Canvas implements Runnable {
   public void run() {
     BufferStrategy bs = getBufferStrategy();
     graphics = (Graphics2D) bs.getDrawGraphics();
+    drawUtils.setGraphics(graphics);
 
     long last = System.nanoTime();
     long frameTime = 1_000_000_000L / targetFPS;
@@ -123,31 +126,29 @@ public class WindowManager extends Canvas implements Runnable {
   private int px = 0, py = 0;
   private BufferedImage scene;
   private int[] pixels;
-  Ray ray = new Ray(new Vector(0, 0), new Vector(1, 0), 0);
+  private Ray ray = new Ray(new Vector(0, 0), new Vector(1, 0), 0);
   private int samples = 100;
-  private int pixelsPerFrame = 1200;
+  private boolean jitter = true;
+  private int pixelsPerFrame = 600 * 2;
   private int numFrames = 0;
   private boolean justEdited = false;
 
   private void draw() {
-    if (sketch.getState() == Sketch.State.EDIT) {
+    if (sketch.stateManager.getState() == State.EDIT) {
       drawUtils.background(Color.BLACK);
     } else {
       drawUtils.getGraphics().drawImage(scene, 0, 0, null);
     }
 
-    if (sketch.getState() == Sketch.State.DEBUG) {
+    if (sketch.stateManager.getState() == State.DEBUG) {
       sketch.environment.showMaterials(drawUtils);
-      drawUtils.noStroke();
-      drawUtils.fill(Color.orange);
-      drawUtils.rect(10, 10, 50, 20);
       drawUtils.fill(Color.WHITE);
       drawUtils.text(Integer.toString((int) frameRate), 10, 10, 20, TextAlign.LEFT_TOP);
     }
 
     sketch.environment.show(drawUtils);
 
-    if (sketch.getState() == Sketch.State.EDIT) {
+    if (sketch.stateManager.getState() == State.EDIT) {
       sketch.editManager.show(drawUtils);
       justEdited = true;
     } else {
@@ -165,12 +166,12 @@ public class WindowManager extends Canvas implements Runnable {
       drawUtils.line(0, py, 20, py);
 
       for (int pix = 0; pix < pixelsPerFrame; pix++) {
-        ray.origin.set(px, py);
+        ray.setOrigin(px, py);
         HitColor colorSum = new HitColor(0, 0, 0, 1);
-        float angleOffset = (float) (Math.random() * Math.PI * 2);
+        float angleOffset = jitter ? (float) (Math.random() * Math.PI * 2) : 0;
         for (int i = 0; i < samples; i++) {
           float angle = (float) i / samples * 2 * (float) Math.PI;
-          ray.direction.set(Vector.fromAngle(angle + angleOffset));
+          ray.setDirection(Vector.fromAngle(angle + angleOffset));
           Intersection inter = sketch.environment.intersect(ray);
           if (inter != null) {
             colorSum.add(inter.color);

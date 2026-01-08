@@ -9,23 +9,19 @@ import sketch.edit.EditTool;
 import sketch.environment.ConicalGradientPaint;
 import sketch.environment.Intersection;
 import sketch.environment.Ray;
-import sketch.environment.colortype.ColorType;
-import sketch.environment.colortype.GradientColor;
-import sketch.environment.colortype.SolidColor;
-import sketch.environment.colortype.SplitColor;
+import sketch.environment.colortype.*;
 import sketch.environment.material.Material;
 import sketch.util.DrawUtils;
 import sketch.util.MathUtils;
 import sketch.util.Vector;
 
 public class Arc extends IntersectionShape {
-  public Vector center;
-  public float radius;
-  public float startAngle, endAngle;
+  private Vector center;
+  private float radius;
+  private float startAngle, endAngle;
   private EditPoint centerTool;
   private EditRadius radiusTool;
   private EditAngle startAngleTool, endAngleTool;
-  private BoundingBox boundingBox;
 
   public Arc(Vector center, float radius, float startAngle, float endAngle) {
     this.center = center;
@@ -39,7 +35,6 @@ public class Arc extends IntersectionShape {
     radiusTool = new EditRadius(centerTool, radius, this::setRadius);
     startAngleTool = new EditAngle(centerTool, radiusTool, startAngle, this::setStartAngle);
     endAngleTool = new EditAngle(centerTool, radiusTool, endAngle, this::setEndAngle);
-    boundingBox = new BoundingBox(center.x - radius, center.y - radius, center.x + radius, center.y + radius);
   }
 
   private boolean angleHits(float angle) {
@@ -51,13 +46,11 @@ public class Arc extends IntersectionShape {
     }
   }
 
+  @Override
   public Intersection intersect(Ray ray) {
-    if (!boundingBox.intersects(ray)) {
-      return null;
-    }
-    Vector originToCenter = Vector.sub(center, ray.origin);
-    float dotProduct = originToCenter.dot(ray.direction);
-    Vector projected = Vector.mult(ray.direction, dotProduct);
+    Vector originToCenter = Vector.sub(center, ray.getOrigin());
+    float dotProduct = originToCenter.dot(ray.getDirection());
+    Vector projected = Vector.mult(ray.getDirection(), dotProduct);
     Vector projectedToCenter = Vector.sub(originToCenter, projected);
     float distanceSq = projectedToCenter.magSq();
     Vector hitPos;
@@ -65,12 +58,12 @@ public class Arc extends IntersectionShape {
       return null;
     } else {
       float m = (float) Math.sqrt(radius * radius - distanceSq);
-      float len1 = projected.mag() * Math.signum(projected.dot(ray.direction)) - m;
-      float len2 = projected.mag() * Math.signum(projected.dot(ray.direction)) + m;
-      Vector hit1 = Vector.add(ray.origin, Vector.mult(ray.direction, len1));
-      Vector hit2 = Vector.add(ray.origin, Vector.mult(ray.direction, len2));
-      float d1 = Vector.distSq(ray.origin, hit1); // squared because faster
-      float d2 = Vector.distSq(ray.origin, hit2); // and still works
+      float len1 = projected.mag() * Math.signum(projected.dot(ray.getDirection())) - m;
+      float len2 = projected.mag() * Math.signum(projected.dot(ray.getDirection())) + m;
+      Vector hit1 = Vector.add(ray.getOrigin(), Vector.mult(ray.getDirection(), len1));
+      Vector hit2 = Vector.add(ray.getOrigin(), Vector.mult(ray.getDirection(), len2));
+      float d1 = Vector.distSq(ray.getOrigin(), hit1); // squared because faster
+      float d2 = Vector.distSq(ray.getOrigin(), hit2); // and still works
       float a1 = (float) ((Vector.sub(hit1, center).heading() + Math.PI * 2) % (Math.PI * 2));
       float a2 = (float) ((Vector.sub(hit2, center).heading() + Math.PI * 2) % (Math.PI * 2));
       if (d1 < d2 && len1 > 0 && angleHits(a1)) {
@@ -81,7 +74,7 @@ public class Arc extends IntersectionShape {
         return null;
       }
     }
-    if (Vector.sub(hitPos, ray.origin).dot(ray.direction) < 0) {
+    if (Vector.sub(hitPos, ray.getOrigin()).dot(ray.getDirection()) < 0) {
       return null;
     }
     Vector atOrigin = Vector.sub(hitPos, center);
@@ -99,6 +92,7 @@ public class Arc extends IntersectionShape {
     return Intersection.stepOne(ray, hitPos, normal, t);
   }
 
+  @Override
   public float distToPoint(float mx, float my) {
     if (angleHits((float) ((Math.atan2(my - center.y, mx - center.x) + 2 * Math.PI) % (2 * Math.PI)))) {
       return Math.abs(center.dist(mx, my) - radius);
@@ -109,17 +103,15 @@ public class Arc extends IntersectionShape {
     }
   }
 
-  public void setCenter(float x, float y) {
+  private void setCenter(float x, float y) {
     center.set(x, y);
-    boundingBox = new BoundingBox(center.x - radius, center.y - radius, center.x + radius, center.y + radius);
   }
 
-  public void setRadius(float r) {
+  private void setRadius(float r) {
     radius = r;
-    boundingBox = new BoundingBox(center.x - radius, center.y - radius, center.x + radius, center.y + radius);
   }
 
-  public void setStartAngle(float a) {
+  private void setStartAngle(float a) {
     startAngle = a;
     if (endAngle < startAngle) {
       endAngle += 360;
@@ -128,10 +120,11 @@ public class Arc extends IntersectionShape {
     }
   }
 
-  public void setEndAngle(float a) {
+  private void setEndAngle(float a) {
     endAngle = a < startAngle ? a + 360 : a;
   }
 
+  @Override
   public ArrayList<EditTool> getEditTools() {
     ArrayList<EditTool> tools = new ArrayList<>();
     tools.add(centerTool);
@@ -141,6 +134,7 @@ public class Arc extends IntersectionShape {
     return tools;
   }
 
+  @Override
   public void showEditTools(DrawUtils drawUtils) {
     centerTool.show(drawUtils);
     radiusTool.show(drawUtils);
@@ -148,6 +142,7 @@ public class Arc extends IntersectionShape {
     endAngleTool.show(drawUtils);
   }
 
+  @Override
   public void show(Material mat, DrawUtils drawUtils) {
     ColorType colorType = mat.colorType;
     drawUtils.strokeWeight(4);
@@ -167,20 +162,34 @@ public class Arc extends IntersectionShape {
       drawUtils.point(center.x + radius * (float) Math.cos(Math.toRadians(endAngle)),
           center.y + radius * (float) Math.sin(Math.toRadians(endAngle)));
     } else if (colorType instanceof SplitColor c) {
-      for (int i = 0; i < c.colors.length; i++) {
-        float before = i == 0 ? 0 : c.thresholds[i - 1];
-        float after = i == c.thresholds.length ? 1 : c.thresholds[i];
-        drawUtils.stroke(c.colors[i]);
+      for (int i = 0; i < c.colors.size(); i++) {
+        float before = i == 0 ? 0 : c.thresholds.get(i - 1);
+        float after = i == c.thresholds.size() ? 1 : c.thresholds.get(i);
+        drawUtils.stroke(c.colors.get(i));
         drawUtils.arc(center.x, center.y, radius, MathUtils.lerp(startAngle, endAngle, before),
             MathUtils.lerp(startAngle, endAngle, after));
       }
     }
   }
 
+  @Override
   public void showMaterial(Material mat, DrawUtils drawUtils) {
     drawUtils.stroke(mat.matColor);
     drawUtils.strokeWeight(8);
+    drawUtils.noFill();
     drawUtils.arc(center.x, center.y, radius, startAngle, endAngle);
+  }
+
+  @Override
+  public void getSaveString(StringBuilder sb) {
+    sb.append("Arc\n");
+    sb.append(center.toStringPrecise());
+    sb.append(' ');
+    sb.append(radius);
+    sb.append('\n');
+    sb.append(startAngle);
+    sb.append(' ');
+    sb.append(endAngle);
   }
 
   public static Arc random(float width, float height) {

@@ -20,4 +20,6 @@ public abstract class Material {
   public void setupEditPanel(EditPanel editPanel) {
     colorType.setupEditPanel(editPanel);
   }
+
+  public abstract void getSaveString(StringBuilder sb);
 }

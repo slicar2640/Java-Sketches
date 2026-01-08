@@ -25,8 +25,10 @@ public class EditManager {
   }
 
   public void drag(float mx, float my) {
-    if (selectedTool != null) {
-      selectedTool.drag(mx, my);
+    synchronized (selectionLock) {
+      if (selectedTool != null) {
+        selectedTool.drag(mx, my);
+      }
     }
   }
 
@@ -122,13 +124,17 @@ public class EditManager {
   }
 
   public void deselectTool() {
-    selectedTool = null;
+    synchronized (selectionLock) {
+      selectedTool = null;
+    }
   }
 
   private void deselectObject() {
-    selectedObject = null;
-    if (editPanel != null) {
-      closeEditPanel();
+    synchronized (selectionLock) {
+      selectedObject = null;
+      if (editPanel != null) {
+        closeEditPanel();
+      }
     }
   }
 

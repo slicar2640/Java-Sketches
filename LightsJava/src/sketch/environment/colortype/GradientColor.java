@@ -17,64 +17,66 @@ public class GradientColor implements ColorType {
     color2 = c2;
   }
 
+  @Override
   public Color getColor(float t) {
     return DrawUtils.lerpColor(color1, color2, t);
   }
 
-  public void setRed1(float r) {
+  private void setRed1(float r) {
     color1 = new Color(r / 255f, color1.getGreen() / 255f, color1.getBlue() / 255f);
   }
 
-  public void setGreen1(float g) {
+  private void setGreen1(float g) {
     color1 = new Color(color1.getRed() / 255f, g / 255f, color1.getBlue() / 255f);
   }
 
-  public void setBlue1(float b) {
+  private void setBlue1(float b) {
     color1 = new Color(color1.getRed() / 255f, color1.getGreen() / 255f, b / 255f);
   }
 
-  public void setRed2(float r) {
+  private void setRed2(float r) {
     color2 = new Color(r / 255f, color2.getGreen() / 255f, color2.getBlue() / 255f);
   }
 
-  public void setGreen2(float g) {
+  private void setGreen2(float g) {
     color2 = new Color(color2.getRed() / 255f, g / 255f, color2.getBlue() / 255f);
   }
 
-  public void setBlue2(float b) {
+  private void setBlue2(float b) {
     color2 = new Color(color2.getRed() / 255f, color2.getGreen() / 255f, b / 255f);
   }
 
-  public Paint getRed1SliderPaint() {
+  private Paint getRed1SliderPaint() {
     return new GradientPaint(new Point((int) sliderStartX, 0), new Color(0, color1.getGreen(), color1.getBlue()),
         new Point((int) sliderEndX, 0), new Color(255, color1.getGreen(), color1.getBlue()));
   }
 
-  public Paint getGreen1SliderPaint() {
+  private Paint getGreen1SliderPaint() {
     return new GradientPaint(new Point((int) sliderStartX, 0), new Color(color1.getRed(), 0, color1.getBlue()),
         new Point((int) sliderEndX, 0), new Color(color1.getRed(), 255, color1.getBlue()));
   }
 
-  public Paint getBlue1SliderPaint() {
+  private Paint getBlue1SliderPaint() {
     return new GradientPaint(new Point((int) sliderStartX, 0), new Color(color1.getRed(), color1.getGreen(), 0),
         new Point((int) sliderEndX, 0), new Color(color1.getRed(), color1.getGreen(), 255));
   }
 
-  public Paint getRed2SliderPaint() {
+  private Paint getRed2SliderPaint() {
     return new GradientPaint(new Point((int) sliderStartX, 0), new Color(0, color2.getGreen(), color2.getBlue()),
         new Point((int) sliderEndX, 0), new Color(255, color2.getGreen(), color2.getBlue()));
   }
 
-  public Paint getGreen2SliderPaint() {
+  private Paint getGreen2SliderPaint() {
     return new GradientPaint(new Point((int) sliderStartX, 0), new Color(color2.getRed(), 0, color2.getBlue()),
         new Point((int) sliderEndX, 0), new Color(color2.getRed(), 255, color2.getBlue()));
   }
 
-  public Paint getBlue2SliderPaint() {
+  private Paint getBlue2SliderPaint() {
     return new GradientPaint(new Point((int) sliderStartX, 0), new Color(color2.getRed(), color2.getGreen(), 0),
         new Point((int) sliderEndX, 0), new Color(color2.getRed(), color2.getGreen(), 255));
   }
 
+  @Override
   public void setupEditPanel(EditPanel editPanel) {
     sliderEndX = editPanel.width - sliderStartX;
     ColorType.addColorSliders(editPanel, color1, this::setRed1, this::setGreen1, this::setBlue1,
@@ -84,8 +86,17 @@ public class GradientColor implements ColorType {
         this::getRed2SliderPaint, this::getGreen2SliderPaint, this::getBlue2SliderPaint);
   }
 
+  @Override
   public ColorType copy() {
     return new GradientColor(new Color(color1.getRGB()), new Color(color2.getRGB()));
+  }
+
+  @Override
+  public void getSaveString(StringBuilder sb) {
+    sb.append("Gradient\n");
+    sb.append(String.format("#%06X", (color1.getRGB() & 0xFFFFFF)));
+    sb.append(' ');
+    sb.append(String.format("#%06X", (color2.getRGB() & 0xFFFFFF)));
   }
 
   public static GradientColor random() {

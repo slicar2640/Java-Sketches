@@ -22,11 +22,13 @@ public class EditRadius extends EditTool {
     return radius;
   }
 
+  @Override
   public void drag(float mx, float my) {
     radius = Vector.dist(mx, my, center.getX(), center.getY());
     controlling.accept(radius);
   }
 
+  @Override
   public void show(DrawUtils drawUtils) {
     if (highlighted) {
       drawUtils.stroke(Color.ORANGE);
@@ -37,6 +39,7 @@ public class EditRadius extends EditTool {
     drawUtils.circle(center.getX(), center.getY(), radius);
   }
 
+  @Override
   public boolean isHovered(float mx, float my) {
     return Math.abs(Vector.dist(mx, my, center.getX(), center.getY()) - radius) < hoverDist;
   }
