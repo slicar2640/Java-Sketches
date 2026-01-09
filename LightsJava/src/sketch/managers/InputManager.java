@@ -75,6 +75,12 @@ public class InputManager implements KeyListener, MouseListener, MouseMotionList
       sketch.stateManager.changeState(State.EDIT);
     } else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
       sketch.editManager.tryToOpenEditPanel();
+    } else if (e.getKeyChar() == 'L') {
+      sketch.loadEnvironment();
+    } else if (e.getKeyChar() == 'S') {
+      sketch.saveEnvironment();
+    } else if (e.getKeyCode() == KeyEvent.VK_S && e.isControlDown()) {
+      sketch.saveImage(e.isShiftDown());
     }
   }
 

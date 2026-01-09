@@ -1,6 +1,7 @@
 package sketch.environment.shape;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import sketch.edit.EditPoint;
 import sketch.edit.EditRadius;
@@ -130,5 +131,13 @@ public class Circle extends IntersectionShape {
   public static Circle random(int width, int height) {
     return new Circle(new Vector(MathUtils.random(20, width - 20), MathUtils.random(20, height - 20)),
         MathUtils.random(5, 50));
+  }
+
+  public static Circle load(Iterator<String> iterator) {
+    String centerRadiusLine = iterator.next();
+    String[] crLineSplit = centerRadiusLine.split("(?<=\\)) ");// space after close parenth
+    Vector center = Vector.fromString(crLineSplit[0]);
+    float radius = Float.valueOf(crLineSplit[1]);
+    return new Circle(center, radius);
   }
 }

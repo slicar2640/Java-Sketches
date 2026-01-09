@@ -9,6 +9,7 @@ import java.awt.Toolkit;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.util.concurrent.Phaser;
 
 import javax.swing.JFrame;
 
@@ -132,12 +133,45 @@ public class WindowManager extends Canvas implements Runnable {
   private int pixelsPerFrame = 600 * 2;
   private int numFrames = 0;
   private boolean justEdited = false;
+  private Phaser frameCalculationPhaser = new Phaser(1);
+  private final Object pixelCalculationLock = new Object();
+
+  public synchronized void resetImage() {
+    synchronized (pixelCalculationLock) {
+      px = 0;
+      py = 0;
+      numFrames = 0;
+      for (int i = 0; i < width * height; i++) {
+        pixels[i] = 0xFF000000;
+      }
+    }
+  }
+
+  public BufferedImage getScene() {
+    synchronized (pixelCalculationLock) {
+      BufferedImage b = new BufferedImage(width, height, scene.getType());
+      Graphics2D g = (Graphics2D) b.getGraphics();
+      g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+      DrawUtils sceneDrawUtils = new DrawUtils(this, sketch);
+      sceneDrawUtils.setGraphics(g);
+      sceneDrawUtils.image(scene, 0, 0);
+      sketch.environment.show(sceneDrawUtils);
+      g.dispose();
+      return b;
+    }
+  }
+
+  public BufferedImage getSceneOnceFinished() {
+    int phase = frameCalculationPhaser.getPhase();
+    frameCalculationPhaser.awaitAdvance(phase);
+    return getScene();
+  }
 
   private void draw() {
     if (sketch.stateManager.getState() == State.EDIT) {
       drawUtils.background(Color.BLACK);
     } else {
-      drawUtils.getGraphics().drawImage(scene, 0, 0, null);
+      drawUtils.image(scene, 0, 0);
     }
 
     if (sketch.stateManager.getState() == State.DEBUG) {
@@ -154,42 +188,40 @@ public class WindowManager extends Canvas implements Runnable {
     } else {
       if (justEdited) {
         justEdited = false;
-        px = 0;
-        py = 0;
-        numFrames = 0;
-        for (int i = 0; i < width * height; i++) {
-          pixels[i] = 0xFF000000;
-        }
+        resetImage();
       }
       drawUtils.stroke(Color.white);
       drawUtils.strokeWeight(2);
       drawUtils.line(0, py, 20, py);
 
-      for (int pix = 0; pix < pixelsPerFrame; pix++) {
-        ray.setOrigin(px, py);
-        HitColor colorSum = new HitColor(0, 0, 0, 1);
-        float angleOffset = jitter ? (float) (Math.random() * Math.PI * 2) : 0;
-        for (int i = 0; i < samples; i++) {
-          float angle = (float) i / samples * 2 * (float) Math.PI;
-          ray.setDirection(Vector.fromAngle(angle + angleOffset));
-          Intersection inter = sketch.environment.intersect(ray);
-          if (inter != null) {
-            colorSum.add(inter.color);
+      synchronized (pixelCalculationLock) {
+        for (int pix = 0; pix < pixelsPerFrame; pix++) {
+          ray.setOrigin(px, py);
+          HitColor colorSum = new HitColor(0, 0, 0, 1);
+          float angleOffset = jitter ? (float) (Math.random() * Math.PI * 2) : 0;
+          for (int i = 0; i < samples; i++) {
+            float angle = (float) i / samples * 2 * (float) Math.PI;
+            ray.setDirection(Vector.fromAngle(angle + angleOffset));
+            Intersection inter = sketch.environment.intersect(ray);
+            if (inter != null) {
+              colorSum.add(inter.color);
+            }
           }
-        }
-        colorSum.divide(samples);
-        HitColor oldPixel = new HitColor(new Color(pixels[px + py * width]));
-        colorSum.add(oldPixel.multiply(numFrames)).divide(numFrames + 1);
-        pixels[px + py * width] = colorSum.toColor().getRGB();
+          colorSum.divide(samples);
+          HitColor oldPixel = new HitColor(new Color(pixels[px + py * width]));
+          colorSum.add(oldPixel.multiply(numFrames)).divide(numFrames + 1);
+          pixels[px + py * width] = colorSum.toColor().getRGB();
 
-        px++;
-        if (px >= width) {
-          px = 0;
-          py++;
-        }
-        if (py >= height) {
-          py = 0;
-          numFrames++;
+          px++;
+          if (px >= width) {
+            px = 0;
+            py++;
+          }
+          if (py >= height) {
+            py = 0;
+            numFrames++;
+            frameCalculationPhaser.arrive();
+          }
         }
       }
     }

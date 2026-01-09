@@ -1,6 +1,7 @@
 package sketch.environment.material;
 
 import java.awt.Color;
+import java.util.Iterator;
 
 import sketch.edit.editpanel.EditPanel;
 import sketch.environment.Environment;
@@ -22,4 +23,14 @@ public abstract class Material {
   }
 
   public abstract void getSaveString(StringBuilder sb);
+
+  public static Material load(Iterator<String> iterator) {
+    String material = iterator.next();
+    return switch (material) {
+    case "Light" -> LightMaterial.load(iterator);
+    case "Glass" -> GlassMaterial.load(iterator);
+    case "Mirror" -> MirrorMaterial.load(iterator);
+    default -> throw new IllegalArgumentException(material + "is not a valid material");
+    };
+  }
 }

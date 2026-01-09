@@ -5,6 +5,7 @@ import java.awt.geom.QuadCurve2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import sketch.edit.EditPoint;
 import sketch.edit.EditTool;
@@ -191,5 +192,13 @@ public class Parabola extends Curve<QuadCurve2D.Float> {
     sb.append(vertex.toStringPrecise());
     sb.append(' ');
     sb.append(extent);
+  }
+
+  public static Parabola load(Iterator<String> iterator) {
+    String pointsLine = iterator.next();
+    String focusPoint = pointsLine.substring(0, pointsLine.indexOf(')') + 1);
+    String vertexPoint = pointsLine.substring(pointsLine.indexOf('(', 1));
+    float extent = Float.valueOf(iterator.next());
+    return new Parabola(Vector.fromString(focusPoint), Vector.fromString(vertexPoint), extent);
   }
 }

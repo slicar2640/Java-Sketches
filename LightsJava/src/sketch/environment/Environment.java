@@ -1,6 +1,7 @@
 package sketch.environment;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import sketch.Sketch;
 import sketch.environment.colortype.*;
@@ -26,7 +27,9 @@ public class Environment {
   }
 
   public EnvironmentObject addObject(EnvironmentObject object) {
-    objects.add(object);
+    synchronized (objects) {
+      objects.add(object);
+    }
     object.setEnvironment(this);
     return object;
   }
@@ -38,11 +41,15 @@ public class Environment {
   }
 
   public ArrayList<EnvironmentObject> getObjects() {
-    return objects;
+    synchronized (objects) {
+      return objects;
+    }
   }
 
   public void clearObjects() {
-    objects.clear();
+    synchronized (objects) {
+      objects.clear();
+    }
   }
 
   public IntersectionShape randomShape() {
@@ -87,8 +94,10 @@ public class Environment {
 
   public float closestDist(float px, float py) {
     float minDist = Float.MAX_VALUE;
-    for (EnvironmentObject obj : objects) {
-      minDist = Math.min(minDist, obj.shape.distToPoint(px, py));
+    synchronized (objects) {
+      for (EnvironmentObject obj : objects) {
+        minDist = Math.min(minDist, obj.shape.distToPoint(px, py));
+      }
     }
     return minDist;
   }
@@ -96,37 +105,60 @@ public class Environment {
   public Intersection intersect(Ray ray) {
     float minDist = Float.MAX_VALUE;
     Intersection intersection = null;
-    for (EnvironmentObject obj : objects) {
-      Intersection objIntersection = obj.intersect(ray);
-      if (objIntersection == null)
-        continue;
-      float d = Vector.distSq(ray.getOrigin(), objIntersection.position); // squared distance
-      if (d < minDist) {
-        minDist = d;
-        intersection = objIntersection;
+    synchronized (objects) {
+      for (EnvironmentObject obj : objects) {
+        Intersection objIntersection = obj.intersect(ray);
+        if (objIntersection == null)
+          continue;
+        float d = Vector.distSq(ray.getOrigin(), objIntersection.position); // squared distance
+        if (d < minDist) {
+          minDist = d;
+          intersection = objIntersection;
+        }
       }
     }
     return intersection;
   }
 
   public void show(DrawUtils drawUtils) {
-    for (EnvironmentObject o : objects) {
-      o.show(drawUtils);
+    synchronized (objects) {
+      for (EnvironmentObject o : objects) {
+        o.show(drawUtils);
+      }
     }
   }
 
   public void showMaterials(DrawUtils drawUtils) {
-    for (EnvironmentObject o : objects) {
-      o.showMaterial(drawUtils);
+    synchronized (objects) {
+      for (EnvironmentObject o : objects) {
+        o.showMaterial(drawUtils);
+      }
     }
   }
 
   public String getSaveString() {
     StringBuilder sb = new StringBuilder();
-    for (EnvironmentObject object : objects) {
-      object.getSaveString(sb);
-      sb.append("\n\n");
+    synchronized (objects) {
+      for (int i = 0; i < objects.size(); i++) {
+        EnvironmentObject object = objects.get(i);
+        object.getSaveString(sb);
+        if (i < objects.size() - 1) {
+          sb.append("\n\n");
+        }
+      }
     }
     return sb.toString();
+  }
+
+  public void load(Iterator<String> iterator) {
+    clearObjects();
+    while (iterator.hasNext()) {
+      IntersectionShape shape = IntersectionShape.load(iterator);
+      Material material = Material.load(iterator);
+      addObject(new EnvironmentObject(shape, material));
+      if (iterator.hasNext()) {
+        iterator.next();
+      }
+    }
   }
 }

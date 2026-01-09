@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.GradientPaint;
 import java.awt.Paint;
 import java.awt.Point;
+import java.util.Iterator;
 
 import sketch.edit.editpanel.EditPanel;
 
@@ -67,5 +68,10 @@ public class SolidColor implements ColorType {
 
   public static SolidColor random() {
     return new SolidColor(new Color((float) Math.random(), (float) Math.random(), (float) Math.random()));
+  }
+
+  public static SolidColor load(Iterator<String> iterator) {
+    String colorString = iterator.next();
+    return new SolidColor(Color.decode(colorString));
   }
 }

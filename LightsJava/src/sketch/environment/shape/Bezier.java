@@ -4,7 +4,10 @@ import java.awt.Color;
 import java.awt.geom.CubicCurve2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.stream.Collectors;
 
 import sketch.edit.EditPoint;
 import sketch.edit.EditTool;
@@ -179,13 +182,6 @@ public class Bezier extends Curve<CubicCurve2D.Float> {
     return new CubicCurve2D.Float(p1.x, p1.y, c1.x, c1.y, c2.x, c2.y, p2.x, p2.y);
   }
 
-  public static Bezier random(float width, float height) {
-    return new Bezier(new Vector(MathUtils.random(width), MathUtils.random(height)),
-        new Vector(MathUtils.random(width), MathUtils.random(height)),
-        new Vector(MathUtils.random(width), MathUtils.random(height)),
-        new Vector(MathUtils.random(width), MathUtils.random(height)));
-  }
-
   @Override
   public void getSaveString(StringBuilder sb) {
     sb.append("Bezier\n");
@@ -196,5 +192,19 @@ public class Bezier extends Curve<CubicCurve2D.Float> {
     sb.append(c2.toStringPrecise());
     sb.append(' ');
     sb.append(p2.toStringPrecise());
+  }
+
+  public static Bezier random(float width, float height) {
+    return new Bezier(new Vector(MathUtils.random(width), MathUtils.random(height)),
+        new Vector(MathUtils.random(width), MathUtils.random(height)),
+        new Vector(MathUtils.random(width), MathUtils.random(height)),
+        new Vector(MathUtils.random(width), MathUtils.random(height)));
+  }
+
+  public static Bezier load(Iterator<String> iterator) {
+    String pointsString = iterator.next();
+    Vector[] points = Arrays.stream(pointsString.split("(?<=\\)) (?=\\()")).map(Vector::fromString)
+        .collect(Collectors.toList()).toArray(new Vector[4]); // only split by spaces in between parentheses
+    return new Bezier(points[0], points[1], points[2], points[3]);
   }
 }

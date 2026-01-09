@@ -6,6 +6,7 @@ import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Paint;
 import java.awt.Point;
 import java.awt.Polygon;
@@ -200,6 +201,10 @@ public class DrawUtils {
       graphics.setPaint(fillPaint);
       graphics.drawString(txt, realX, realY);
     }
+  }
+
+  public void image(Image image, int x, int y) {
+    graphics.drawImage(image, x, y, null);
   }
 
   public static Color rgbFromArray(float... arr) {

@@ -1,6 +1,7 @@
 package sketch.environment.material;
 
 import java.awt.Color;
+import java.util.Iterator;
 
 import sketch.environment.HitColor;
 import sketch.environment.Intersection;
@@ -35,5 +36,10 @@ public class GlassMaterial extends Material {
   public void getSaveString(StringBuilder sb) {
     sb.append("Glass\n");
     colorType.getSaveString(sb);
+  }
+
+  public static GlassMaterial load(Iterator<String> iterator) {
+    ColorType colorType = ColorType.load(iterator);
+    return new GlassMaterial(colorType);
   }
 }

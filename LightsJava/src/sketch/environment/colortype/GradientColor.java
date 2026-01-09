@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.GradientPaint;
 import java.awt.Paint;
 import java.awt.Point;
+import java.util.Iterator;
 
 import sketch.edit.editpanel.EditPanel;
 import sketch.util.DrawUtils;
@@ -102,5 +103,10 @@ public class GradientColor implements ColorType {
   public static GradientColor random() {
     return new GradientColor(new Color((float) Math.random(), (float) Math.random(), (float) Math.random()),
         new Color((float) Math.random(), (float) Math.random(), (float) Math.random()));
+  }
+
+  public static GradientColor load(Iterator<String> iterator) {
+    String[] colorStrings = iterator.next().split(" ");
+    return new GradientColor(Color.decode(colorStrings[0]), Color.decode(colorStrings[1]));
   }
 }

@@ -2,6 +2,7 @@ package sketch.environment.colortype;
 
 import java.awt.Color;
 import java.awt.Paint;
+import java.util.Iterator;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -36,4 +37,14 @@ public interface ColorType {
   }
 
   public void getSaveString(StringBuilder sb);
+
+  public static ColorType load(Iterator<String> iterator) {
+    String colorType = iterator.next();
+    return switch (colorType) {
+    case "Solid" -> SolidColor.load(iterator);
+    case "Split" -> SplitColor.load(iterator);
+    case "Gradient" -> GradientColor.load(iterator);
+    default -> throw new IllegalArgumentException(colorType + "is not a valid color type");
+    };
+  }
 }

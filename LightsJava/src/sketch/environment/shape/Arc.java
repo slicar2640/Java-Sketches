@@ -1,6 +1,7 @@
 package sketch.environment.shape;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import sketch.edit.EditAngle;
 import sketch.edit.EditPoint;
@@ -195,5 +196,15 @@ public class Arc extends IntersectionShape {
   public static Arc random(float width, float height) {
     return new Arc(new Vector(MathUtils.random(20, width - 20), MathUtils.random(20, height - 20)),
         MathUtils.random(5, 50), MathUtils.random(360), MathUtils.random(360));
+  }
+
+  public static Arc load(Iterator<String> iterator) {
+    String centerRadiusLine = iterator.next();
+    String[] crLineSplit = centerRadiusLine.split("(?<=\\)) ");// space after close parenth
+    Vector center = Vector.fromString(crLineSplit[0]);
+    float radius = Float.valueOf(crLineSplit[1]);
+    String angleLine = iterator.next();
+    String[] angles = angleLine.split(" ");
+    return new Arc(center, radius, Float.valueOf(angles[0]), Float.valueOf(angles[1]));
   }
 }

@@ -2,6 +2,7 @@ package sketch.environment.shape;
 
 import java.awt.GradientPaint;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import sketch.edit.EditPoint;
 import sketch.edit.EditTool;
@@ -119,5 +120,12 @@ public class Line extends IntersectionShape {
   public static Line random(float width, float height) {
     return new Line(new Vector(MathUtils.random(width), MathUtils.random(height)),
         new Vector(MathUtils.random(width), MathUtils.random(height)));
+  }
+
+  public static Line load(Iterator<String> iterator) {
+    String pointsLine = iterator.next();
+    String p1Point = pointsLine.substring(0, pointsLine.indexOf(')') + 1);
+    String p2Point = pointsLine.substring(pointsLine.indexOf('(', 1));
+    return new Line(Vector.fromString(p1Point), Vector.fromString(p2Point));
   }
 }

@@ -215,6 +215,15 @@ public class Vector {
     return new Vector(length * (float) Math.cos(angle), length * (float) Math.sin(angle));
   }
 
+  public static Vector fromString(String string) {
+    if (!string.startsWith("(") || !string.endsWith(")")) {
+      throw new IllegalArgumentException(string + " is not in the correct format");
+    }
+    String withoutParenth = string.substring(1, string.length() - 1);
+    String[] coords = withoutParenth.split(", ");
+    return new Vector(Float.valueOf(coords[0]), Float.valueOf(coords[1]));
+  }
+
   public static Vector reflect(Vector vec, Vector normal) {
     Vector normalCopy = normal.copy();
     if (normalCopy.magSq() != 1)

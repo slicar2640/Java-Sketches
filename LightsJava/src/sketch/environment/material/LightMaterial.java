@@ -1,6 +1,7 @@
 package sketch.environment.material;
 
 import java.awt.Color;
+import java.util.Iterator;
 
 import sketch.edit.editpanel.EditPanel;
 import sketch.edit.editpanel.EditSlider;
@@ -45,5 +46,11 @@ public class LightMaterial extends Material {
     sb.append(strength);
     sb.append('\n');
     colorType.getSaveString(sb);
+  }
+
+  public static LightMaterial load(Iterator<String> iterator) {
+    float strength = Float.valueOf(iterator.next());
+    ColorType colorType = ColorType.load(iterator);
+    return new LightMaterial(colorType, strength);
   }
 }

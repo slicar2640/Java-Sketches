@@ -5,7 +5,9 @@ import java.awt.GradientPaint;
 import java.awt.Paint;
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.stream.Collectors;
 
 import sketch.edit.editpanel.EditMultiSlider;
@@ -166,11 +168,10 @@ public class SplitColor implements ColorType {
   @Override
   public void getSaveString(StringBuilder sb) {
     sb.append("Split\n");
-    String thresholdsString = thresholds.toString();
-    sb.append(thresholdsString.substring(1, thresholdsString.length() - 1));
-    sb.append('\n');
     sb.append(colors.stream().map(color -> String.format("#%06X", (color.getRGB() & 0xFFFFFF)))
-        .collect(Collectors.joining(", ")));
+        .collect(Collectors.joining(" ")));
+    sb.append('\n');
+    sb.append(thresholds.stream().map(String::valueOf).collect(Collectors.joining(" ")));
   }
 
   public static SplitColor random() {
@@ -223,6 +224,16 @@ public class SplitColor implements ColorType {
     }
     thresholds = newThresholds;
     colors = newColors;
+    return new SplitColor(colors, thresholds);
+  }
+
+  public static SplitColor load(Iterator<String> iterator) {
+    String colorsLine = iterator.next();
+    ArrayList<Color> colors = new ArrayList<>(
+        Arrays.stream(colorsLine.split(" ")).map(Color::decode).collect(Collectors.toList()));
+    String thresholdsLine = iterator.next();
+    ArrayList<Float> thresholds = new ArrayList<>(
+        Arrays.stream(thresholdsLine.split(" ")).map(Float::valueOf).collect(Collectors.toList()));
     return new SplitColor(colors, thresholds);
   }
 }

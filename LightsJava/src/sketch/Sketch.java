@@ -4,13 +4,19 @@ import java.awt.Cursor;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Iterator;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import sketch.edit.EditManager;
 import sketch.environment.Environment;
@@ -58,13 +64,105 @@ public class Sketch {
     stateManager.addTransition(State.EDIT, State.DISPLAY, editManager::exit);
   }
 
-  public void saveToFile() {
-    JFileChooser fileChooser = new JFileChooser();
-    int decision = fileChooser.showSaveDialog(null);
-    if (decision == JFileChooser.APPROVE_OPTION) {
+  public void saveImage(boolean waitForFinish) {
+    JFileChooser fileChooser = new JFileChooser() {
+      @Override
+      public void approveSelection() {
+        File f = getSelectedFile();
+        if ((f.exists() || new File(f.toString() + ".png").exists()) && getDialogType() == SAVE_DIALOG) {
+          int result = JOptionPane.showConfirmDialog(this, "The file %s exists, overwrite?".formatted(f.toString()),
+              "Existing file", JOptionPane.YES_NO_CANCEL_OPTION);
+          switch (result) {
+          case JOptionPane.YES_OPTION:
+            super.approveSelection();
+            return;
+          case JOptionPane.NO_OPTION:
+          case JOptionPane.CLOSED_OPTION:
+            return;
+          case JOptionPane.CANCEL_OPTION:
+            cancelSelection();
+            return;
+          }
+        }
+        super.approveSelection();
+      }
+    };
+    fileChooser.setFileFilter(new FileNameExtensionFilter(".png", "png"));
+    int result = fileChooser.showSaveDialog(null);
+    if (result == JFileChooser.APPROVE_OPTION) {
+      String selectedFileName = fileChooser.getSelectedFile().toString();
+      if (!selectedFileName.endsWith(".png")) {
+        selectedFileName += ".png";
+      }
+      BufferedImage scene;
+      if (waitForFinish) {
+        scene = windowManager.getSceneOnceFinished();
+      } else {
+        scene = windowManager.getScene();
+      }
+      try {
+        ImageIO.write(scene, "png", new File(selectedFileName));
+        System.out.println("scene saved to " + new File(selectedFileName).getName());
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  public void saveEnvironment() {
+    JFileChooser fileChooser = new JFileChooser() {
+      @Override
+      public void approveSelection() {
+        File f = getSelectedFile();
+        if ((f.exists() || new File(f.toString() + ".txt").exists()) && getDialogType() == SAVE_DIALOG) {
+          int result = JOptionPane.showConfirmDialog(this, "The file %s exists, overwrite?".formatted(f.toString()),
+              "Existing file", JOptionPane.YES_NO_CANCEL_OPTION);
+          switch (result) {
+          case JOptionPane.YES_OPTION:
+            super.approveSelection();
+            return;
+          case JOptionPane.NO_OPTION:
+          case JOptionPane.CLOSED_OPTION:
+            return;
+          case JOptionPane.CANCEL_OPTION:
+            cancelSelection();
+            return;
+          }
+        }
+        super.approveSelection();
+      }
+    };
+    FileNameExtensionFilter txtFilter = new FileNameExtensionFilter(".txt", "txt");
+    fileChooser.setFileFilter(txtFilter);
+    int result = fileChooser.showSaveDialog(null);
+    if (result == JFileChooser.APPROVE_OPTION) {
       String saveString = environment.getSaveString();
-      try (FileWriter fw = new FileWriter(fileChooser.getSelectedFile() + ".txt")) {
-        fw.write(saveString.toString());
+      String selectedFileName = fileChooser.getSelectedFile().toString();
+      if (!selectedFileName.endsWith(".txt")) {
+        selectedFileName += ".txt";
+      }
+      try (FileWriter fw = new FileWriter(selectedFileName, false)) {
+        fw.write(saveString);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  public void loadEnvironment() {
+    JFileChooser fileChooser = new JFileChooser();
+    FileNameExtensionFilter txtFilter = new FileNameExtensionFilter(".txt", "txt");
+    fileChooser.setFileFilter(txtFilter);
+    int result = fileChooser.showOpenDialog(null);
+    if (result == JFileChooser.APPROVE_OPTION) {
+      String selectedFileName = fileChooser.getSelectedFile().toString();
+      if (!selectedFileName.endsWith(".txt")) {
+        selectedFileName += ".txt";
+      }
+      try (BufferedReader br = new BufferedReader(new FileReader(selectedFileName))) {
+        Iterator<String> iterator = br.lines().iterator();
+        environment.load(iterator);
+        windowManager.resetImage();
       } catch (IOException e) {
         e.printStackTrace();
       }
@@ -82,7 +180,6 @@ public class Sketch {
     for (int i = 0; i < 4; i++) {
       environment.addRandomObject();
     }
-    saveToFile();
     editManager = new EditManager(this, environment);
     setupStateManager();
     setupCursorIcons();
