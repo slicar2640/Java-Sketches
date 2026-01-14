@@ -41,6 +41,6 @@ public class EditRadius extends EditTool {
 
   @Override
   public boolean isHovered(float mx, float my) {
-    return Math.abs(Vector.dist(mx, my, center.getX(), center.getY()) - radius) < hoverDist;
+    return Math.abs(Vector.dist(mx, my, center.getX(), center.getY()) - radius) <= hoverDist;
   }
 }

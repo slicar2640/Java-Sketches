@@ -20,6 +20,10 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import sketch.edit.EditManager;
 import sketch.environment.Environment;
+import sketch.environment.EnvironmentObject;
+import sketch.environment.colortype.SolidColor;
+import sketch.environment.material.LightMaterial;
+import sketch.environment.shape.Parabola;
 import sketch.managers.InputManager;
 import sketch.managers.StateManager;
 import sketch.managers.WindowManager;
@@ -178,7 +182,7 @@ public class Sketch {
     windowManager.addMouseWheelListener(inputManager);
     environment = new Environment(this, 10);
     for (int i = 0; i < 4; i++) {
-      environment.addRandomObject();
+    environment.addRandomObject();
     }
     editManager = new EditManager(this, environment);
     setupStateManager();
@@ -186,7 +190,6 @@ public class Sketch {
 
     windowManager.start();
   }
-  // TODO: extent tool for parabolas
 
   public static void main(String[] args) {
     Sketch sketch = new Sketch();

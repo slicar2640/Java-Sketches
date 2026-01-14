@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
+import sketch.edit.EditExtent;
 import sketch.edit.EditPoint;
 import sketch.edit.EditTool;
 import sketch.environment.Intersection;
@@ -20,6 +21,7 @@ public class Parabola extends Curve<QuadCurve2D.Float> {
   private float extent;
   private Vector p1, c, p2;
   private EditPoint focusTool, vertexTool;
+  private EditExtent extentTool;
 
   public Parabola(Vector focus, Vector vertex, float extent) {
     super(QuadCurve2D.Float.class);
@@ -28,6 +30,7 @@ public class Parabola extends Curve<QuadCurve2D.Float> {
     this.extent = extent;
     focusTool = new EditPoint(focus.x, focus.y, this::setFocus);
     vertexTool = new EditPoint(vertex.x, vertex.y, this::setVertex);
+    extentTool = new EditExtent(this);
     p1 = new Vector(0, 0);
     c = new Vector(0, 0);
     p2 = new Vector(0, 0);
@@ -134,13 +137,38 @@ public class Parabola extends Curve<QuadCurve2D.Float> {
     calculateBoundingBox();
   }
 
+  public Vector getFocus() {
+    return focus;
+  }
+
   private void setFocus(float x, float y) {
     focus.set(x, y);
     updateAfterChange();
   }
 
+  public Vector getVertex() {
+    return vertex;
+  }
+
   private void setVertex(float x, float y) {
     vertex.set(x, y);
+    updateAfterChange();
+  }
+
+  public Vector getP1() {
+    return p1;
+  }
+
+  public Vector getP2() {
+    return p2;
+  }
+
+  public float getExtent() {
+    return extent;
+  }
+
+  public void setExtent(float extent) {
+    this.extent = extent;
     updateAfterChange();
   }
 
@@ -149,6 +177,7 @@ public class Parabola extends Curve<QuadCurve2D.Float> {
     ArrayList<EditTool> tools = new ArrayList<>();
     tools.add(focusTool);
     tools.add(vertexTool);
+    tools.add(extentTool);
     return tools;
   }
 
@@ -156,6 +185,7 @@ public class Parabola extends Curve<QuadCurve2D.Float> {
   public void showEditTools(DrawUtils drawUtils) {
     focusTool.show(drawUtils);
     vertexTool.show(drawUtils);
+    extentTool.show(drawUtils);
 
     drawUtils.stroke(Color.WHITE);
     drawUtils.strokeDash(2, 5, 5, 0);
